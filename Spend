@@ -1,0 +1,151 @@
+package rpgGridBrawl;
+
+public class Spend extends GridBrawl {
+	Brawler faust;
+	Diamond mephisto;
+	
+	public Spend() {}
+	
+	public GameData execute(GameData crt) {
+		Sword sword = new Sword();
+		Shield shield = new Shield();
+		Ring ring = new Ring();
+		mephisto = new Diamond();
+		for (int a = 0; a < crt.getAllBrawlers().length; a++) {
+			Brawler loot = crt.getBrawler(a);
+			if (loot instanceof Diamond) mephisto = (Diamond) crt.getBrawler(a);
+			if (mephisto.pieceID == loot.possession) faust = crt.getBrawler(a);
+			if (loot instanceof Sword) sword = (Sword) crt.getBrawler(a);
+			if (loot instanceof Shield) shield = (Shield) crt.getBrawler(a);
+			if (loot instanceof Ring) ring = (Ring) crt.getBrawler(a);	
+		}
+		boolean bonusFunction = (faust instanceof Rogue);
+		int[] bribeList = buildTargetList(crt, faust);
+		boolean options1[] = new boolean[3];
+		boolean confirm = false;
+		
+		if (bribeList.length >= 1) { // There is at least one brawler available to bribe
+			options1[0] = true;
+			for (int m = 0; m < bribeList.length; m++) if (crt.getBrawler(bribeList[m]) instanceof Merchant) options1[1] = true;
+		}
+		options1[2] = bonusFunction;
+		
+		interact.tellPlayer(5, 1, false); // "Please select from among the following options:"
+		interact.tellPlayer(interact.reportOnSpendOptions1(options1), true);
+		int opt1 = interact.getSpendSelection1(options1);
+		if (opt1 == -1) {
+			crt.setSuccessfulTurn(false);
+			return crt;
+		}
+		interact.space();
+		switch(opt1) {
+		case 1: // bribe
+			interact.tellPlayer(8, 0, false); // "These brawlers are open to being bribed this turn:"
+			interact.tellPlayer(interact.reportOnSpendOptions2(bribeList, crt), true);
+			int opt2 = interact.getSpendSelection2(bribeList);
+			if (opt2 == -1) {
+				crt.setSuccessfulTurn(false);
+				return crt;
+			}
+			Brawler bribed = crt.getBrawler(bribeList[opt2]);
+			interact.tellPlayer(interact.msgBuild(crt, 32, bribed.pieceID), false); // "You have selected to bribe the " + BRWLRS[bribed] + " into moving to a new space."
+			interact.tellPlayer(8,  1, true); // "Enter the 3-digit number of any unoccupied space: "
+			int[] nwSpc = interact.getUnoccupiedSpaceNumber(crt);
+			if (nwSpc[0] == -1) {
+				crt.setSuccessfulTurn(false);
+				return crt;
+			}
+			int newSpace = nwSpc[0] * 100 + nwSpc[1] * 10 + nwSpc[2];
+			String result = "You have selected to use your" + BRWLRS[faust.pieceID] + " to bribe the " + BRWLRS[bribed.pieceID]+ " to space #" + newSpace + ".";
+			interact.tellPlayer(result, false);
+			confirm = interact.confirm();
+			if (!confirm) {
+				crt.setSuccessfulTurn(false);
+				return crt;
+			}
+			interact.space();
+			interact.tellPlayer(8,  2, false); // "The Diamond has been spent, your bribe was successful."
+			interact.space();
+			int xy = dispossess(crt, mephisto.pieceID);
+			crt.getBrawler(bribed.pieceID).floor = nwSpc[0];
+			crt.getBrawler(bribed.pieceID).column = nwSpc[1];
+			crt.getBrawler(bribed.pieceID).row = nwSpc[2];
+			break;
+		case 2: // purchase
+			Brawler merchandise = new Sword();
+			interact.tellPlayer(interact.msgBuild(crt, 33, faust.pieceID), false); // "The " + BRWLRS[faust] + " may purchase a Treasure from the Merchant."
+			interact.tellPlayer(8, 3, true); // "1. Sword\n2. Shield\n3. Ring\nEnter the number of the Treasure you wish to purchase: "
+			int purchase = interact.getSpendSelection3();
+			if (purchase == 1) merchandise = sword;
+			else if (purchase == 2) merchandise = shield;
+			else merchandise = ring;
+			String transaction = "You have selected to purchase the " + BRWLRS[merchandise.pieceID] + " for the " + BRWLRS[faust.pieceID] + ".";
+			interact.tellPlayer(transaction, false);
+			confirm = interact.confirm();
+			if (!confirm) {
+				crt.setSuccessfulTurn(false);
+				return crt;
+			}
+			for (int bb = 0; bb < crt.getAllBrawlers().length; bb++) if (merchandise.pieceID == crt.getBrawler(bb).possession) dispossess(crt, merchandise.pieceID);
+			crt.getBrawler(faust.pieceID).possession = merchandise.pieceID;
+			crt.getBrawler(faust.pieceID).handsFull = true;
+			crt.getBrawler(merchandise.pieceID).floor = faust.floor;
+			crt.getBrawler(merchandise.pieceID).column = faust.column;
+			crt.getBrawler(merchandise.pieceID).row = faust.row;
+			break;
+		case 3: // invest
+			interact.tellPlayer(8, 4, false); // "Your Rogue may 'invest' the Diamond, and in doing so will take possession of any one Treasure on its board level."
+			boolean[] opts3 = {(sword.floor == faust.floor), (shield.floor == faust.floor), (ring.floor == faust.floor)};
+			if (!opts3[0] && !opts3[1] && !opts3[2]) {
+				interact.tellPlayer(interact.msgBuild(crt, 34, faust.pieceID), false);
+				interact.space();
+				crt.setSuccessfulTurn(false);
+				return crt;
+			}
+			interact.tellPlayer(interact.reportOnSpendOptions3(opts3), true);
+			int yieldSelect = interact.getSpendSelection4(opts3);
+			if (yieldSelect == -1) {
+				crt.setSuccessfulTurn(false);
+				return crt;
+			}
+			Brawler yield = new Diamond();
+			if (yieldSelect == 1) yield = sword;
+			if (yieldSelect == 2) yield = shield;
+			if (yieldSelect == 3) yield = ring;
+			result = "You have selected to invest the Diamond, which will yield the " + BRWLRS[yield.pieceID] + " to the " + BRWLRS[faust.pieceID];
+			interact.tellPlayer(result, false);
+			confirm = interact.confirm();
+			if (!confirm) {
+				crt.setSuccessfulTurn(false);
+				return crt;
+			}
+			dispossess(crt, yield.pieceID);
+			crt.getBrawler(faust.pieceID).possession = yield.pieceID;
+			crt.getBrawler(faust.pieceID).handsFull = true;
+			crt.getBrawler(yield.pieceID).floor = faust.floor;
+			crt.getBrawler(yield.pieceID).column = faust.column;
+			crt.getBrawler(yield.pieceID).row = faust.row;
+			interact.space();
+			interact.tellPlayer(8, 5, false); // "The Diamond has been spent, your investment was fruitful.";
+			interact.space();
+		}
+		crt.setSuccessfulTurn(true);
+		if (crt.isRedsTurn()) crt.setRedCanPlace(true);
+		else crt.setBlueCanPlace(true);
+		crt = updateLastUsed(crt, faust.pieceID);
+		crt.getBrawler(mephisto.pieceID).remove();
+		return crt;
+	} // end of execute()
+	
+	// whoever has the treasure in question gives it up.
+	private static int dispossess(GameData crt, int loot) {
+		int formerOwner = -1;
+		for (int d = 0; d < crt.getAllBrawlers().length; d++) if (loot == crt.getBrawler(d).possession) formerOwner = d;	
+		if (formerOwner != -1) {
+			crt.getBrawler(formerOwner).handsFull = false;
+				crt.getBrawler(formerOwner).possession = -1;
+		}	
+		return formerOwner;
+	}	
+	
+} // end of Spend class
