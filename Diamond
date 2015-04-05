@@ -1,0 +1,20 @@
+package rpgGridBrawl;
+
+public class Diamond extends Brawler implements Treasure {
+
+	public Diamond() {
+		this.pieceID = 23;
+		this.onBoard = false;
+		letterName = "Dm";
+		suit = 'R';
+		playground = new int[24];
+	}
+	
+	public void getsBumped() {
+		this.remove();
+	}
+	
+	public boolean canAttack(Brawler victim) {
+		return false;
+	}
+}
