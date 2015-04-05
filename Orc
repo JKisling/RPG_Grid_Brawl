@@ -1,0 +1,46 @@
+package rpgGridBrawl;
+
+class Orc extends Brawler implements Monster {
+	
+	public Orc() {
+		pieceID = 12;
+		level = 1;
+		floor = 0;
+		row = 0;
+		column = 0;
+		onBoard = false;
+		usedLast = false;
+		handsFull = false;
+		possession = -1;
+		letterName = "O";
+		isRed = false;
+		isBlue = false;
+		suit = 'W';
+		playground = new int[32];
+	}
+	
+	public boolean canAttack(Brawler victim) {
+		boolean answer = false;
+		int defense = (victim.level + victim.shieldBonus + victim.clericDefenseBonus);
+		int attack = this.level;
+		if (victim instanceof Warrior) attack--; // Orc is weak vs. Warrior
+		boolean overcome = (attack >= defense);
+		
+		if (overcome && (victim instanceof Character || victim instanceof Nemesis)) answer = true;
+		else if (victim instanceof Monster && (attack > defense)) answer = true;
+		else if (victim instanceof NPC) answer = false;
+		else if (!this.handsFull && victim instanceof Treasure) answer = true;
+		return answer;
+	}
+	
+	public void getsBumped() {
+		if (this.floor == 1) this.remove();
+		else {
+			if (this.level == 1) this.remove();
+			else {
+			this.level -= 1;
+			this.floor -= 1;
+			}
+		}
+	}	
+} // end of Orc class
