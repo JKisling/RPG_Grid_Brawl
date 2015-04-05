@@ -1,0 +1,66 @@
+package rpgGridBrawl;
+
+public class Rogue extends Brawler implements Character {
+
+	public Rogue(int pieceNum) {
+		pieceID = pieceNum;
+		if (pieceNum == 3) {
+			this.isRed = true;
+			this.isBlue = false;
+		}
+		if (pieceNum == 7) {
+			this.isRed = false;
+			this.isBlue = true;
+		}
+		level = 1;
+		floor = 0;
+		row = 0;
+		column = 0;
+		onBoard = false;
+		usedLast = false;
+		poweredUp = false;
+		handsFull = false;
+		glorified = false;
+		swordBonus = 0;
+		shieldBonus = 0;
+		possession = -1;
+		letterName = "R";
+		suit = 'R';
+		playground = new int[24];
+	}
+
+	public boolean canAttack(Brawler victim) {
+		boolean answer = false;
+		// Rogues get +1 to attack on board level moves--this is called "ambush"
+		int ambush = 0;	int isSerpent = 0;
+		if (this.floor != victim.floor) ambush = 1;
+		if (victim instanceof Serpent) isSerpent = 1;
+		int defense = (victim.level + victim.shieldBonus + victim.clericDefenseBonus - isSerpent);
+		int attack = (this.level + this.swordBonus + ambush);
+		boolean overcome = (attack > defense);
+		if (victim instanceof Character && overcome) {
+			if ((this.isRed && victim.isBlue) || (this.isBlue && victim.isRed)) answer = true;
+		}
+		else if (victim instanceof Monster || victim instanceof Nemesis) {
+			overcome = (attack >= defense);
+			if (overcome) answer = true;
+		}
+		else if (victim instanceof Princess || victim instanceof Ghost) answer = false;
+		else if (victim instanceof Leper && this.level > 1) answer = true;
+		else if (victim instanceof Merchant && !this.handsFull) answer = true;
+		else if (victim instanceof Treasure && !this.handsFull) answer = true;
+		return answer;
+	}
+	
+	public void getsBumped() {
+		if (this.floor == 1) this.remove();
+		else {
+			if (this.level == 1) this.remove();
+			else {
+			this.level -= 1;
+			this.floor -= 1;
+			}
+		}
+	}
+
+} // end of Rogue class
