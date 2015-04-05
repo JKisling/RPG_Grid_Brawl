@@ -1,0 +1,21 @@
+package rpgGridBrawl;
+
+public class Ring extends Brawler implements Treasure {
+
+	public Ring() {
+		pieceID = 22;
+		onBoard = false;
+		letterName = "Ri";
+		suit = 'M';
+		playground = new int[1];
+	}
+	
+	public void getsBumped() {
+		this.remove();
+	}
+	
+	public boolean canAttack(Brawler victim) {
+		return false;
+	}
+
+} // end of Ring class
