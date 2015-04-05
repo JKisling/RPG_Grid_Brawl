@@ -1,0 +1,64 @@
+package rpgGridBrawl;
+
+class Warrior extends Brawler implements Character {
+	int isCharging;
+	
+	public Warrior(int pieceNum) {
+		pieceID = pieceNum;
+		if (pieceNum == 0) {
+			isRed = true;
+			isBlue = false;
+		}
+		if (pieceNum == 4) {
+			isRed = false;
+			isBlue = true;
+		}
+		level = 1;
+		floor = 0;
+		row = 0;
+		column = 0;
+		onBoard = false;
+		usedLast = false;
+		poweredUp = false;
+		handsFull = false;
+		glorified = false;
+		swordBonus = 0;
+		shieldBonus = 0;
+		isCharging = 0;
+		possession = -1;
+		letterName = "W";
+		suit = 'W';
+		playground = new int[32];
+	}
+	
+	// assumes standard set of brawlers
+	public boolean canAttack(Brawler victim) {
+		boolean answer = false;
+		int isOrc = 0;
+		if (victim instanceof Orc) isOrc = 1;
+		int defense = (victim.level + victim.shieldBonus + victim.clericDefenseBonus - isOrc);
+		int attack = (this.level + this.swordBonus + this.isCharging);
+		// The Warrior has inherent Battle Skill, thus can attack Characters at CL=
+		boolean overcome = (attack >= defense);
+		if (victim instanceof Character && overcome) {
+			if ((this.isRed && victim.isBlue) || (this.isBlue && victim.isRed)) answer = true;
+		}
+		else if (overcome && (victim instanceof Monster || victim instanceof Nemesis)) answer = true;
+		else if (victim instanceof Princess && !this.handsFull) answer = true;
+		else if (victim instanceof Leper && this.level > 1) answer = true;
+		else if (victim instanceof Ghost || victim instanceof Merchant) answer = false;
+		else if (victim instanceof Treasure && !this.handsFull) answer = true;
+		return answer;
+	}
+	
+	public void getsBumped() {
+		if (this.floor == 1) this.remove();
+		else {
+			if (this.level == 1) this.remove();
+			else {
+			this.level -= 1;
+			this.floor -= 1;
+			}
+		}
+	}
+} // end of Warrior class
