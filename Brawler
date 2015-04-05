@@ -1,0 +1,45 @@
+package rpgGridBrawl;
+
+/* Standard set of Brawlers will be numbered as follows:
+ *0: red warrior	1: red cleric	 	2: red mage			3:red rogue
+ *4: blue warrior	5: blue cleric		6: blue mage		7: blue rogue
+ *8: dragon			9: vampire			10: abyss			11: sentinel
+ *12: orc			13: zombie			14: goblin			15: serpent
+ *16: princess		17: leper			18: ghost			19: merchant
+ *20: sword			21: shield			22: ring			23: diamond
+ */
+
+public abstract class Brawler {
+	protected int floor, column, row, level, swordBonus, shieldBonus, clericDefenseBonus, possession, pieceID;
+	protected int[] playground;
+	protected char suit;
+	protected boolean onBoard, moveable, usedLast, isRed, isBlue, poweredUp, handsFull, glorified;
+	protected String letterName;
+	
+	// remember that pieceID describes the type of brawler, and the slot number in GameData.brawlers[] only coincides
+	// with Brawler.pieceID in the standard set of pieces.
+	
+	public abstract boolean canAttack(Brawler victim);
+	public abstract void getsBumped();
+	public void remove() {
+		this.onBoard = false;
+		this.floor = 0;
+		this.row = 0;
+		this.column = 0;
+		this.usedLast = false;
+		if (!this.glorified && (this instanceof Character || this instanceof Monster)) this.level = 1;
+	}
+	
+	public boolean isAdjacentToMe(int f, int c, int r) {
+		int cc = this.column;
+		int rr = this.row;
+		if (f != this.floor) return false;
+		if ((c == cc) || (c - 1 == cc) || (c + 1 == cc)) {
+			if ((r + 1 == rr) || (r - 1 == rr)) return true;
+		}
+		else if (r == rr) {
+			if ((c + 1 == cc) || (c - 1 == cc)) return true;
+		}
+		return false;
+	}
+}
