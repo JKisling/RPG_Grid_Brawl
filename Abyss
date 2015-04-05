@@ -1,0 +1,26 @@
+package rpgGridBrawl;
+
+public class Abyss extends Brawler implements Nemesis {
+	public Abyss() {
+		this.pieceID = 10;
+		this.onBoard = false;
+		letterName = "AB";
+		isRed = false;
+		isBlue = false;
+		suit = 'M';
+		playground = new int[14];
+	}
+	
+	public boolean canAttack(Brawler victim) {
+		if (victim instanceof Ghost) return false;
+		if (victim instanceof Character) {
+			if ((victim.level + victim.clericDefenseBonus + victim.shieldBonus) > 4) return false;
+		}
+		return true;
+	}
+
+	public void getsBumped() {
+		this.remove();
+	}
+}
+
