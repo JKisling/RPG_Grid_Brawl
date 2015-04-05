@@ -1,0 +1,22 @@
+package rpgGridBrawl;
+
+public class Princess extends Brawler implements NPC {
+
+	public Princess() {
+		pieceID = 16;
+		onBoard = false;
+		letterName = "Pi";
+		isRed = false;
+		isBlue = false;
+		suit = 'W';
+		playground = new int[32];
+	}
+	
+	public boolean canAttack(Brawler victim) {
+		return false;
+	}
+	
+	public void getsBumped() {
+		this.remove();
+	}
+} // end of Princess class
