@@ -1,0 +1,27 @@
+package rpgGridBrawl;
+
+public class Vampire extends Brawler implements Nemesis {
+
+	public Vampire() {
+		pieceID = 9;
+		onBoard = false;
+		letterName = "VP";
+		isRed = false;
+		isBlue = false;
+		suit = 'C';
+		playground = new int[24];
+	}
+	
+	public boolean canAttack(Brawler victim) {
+		if (victim instanceof Ghost) return false;
+		if (victim instanceof Character) {
+			if ((victim.level + victim.clericDefenseBonus + victim.shieldBonus) > 4) return false;
+		}
+		return true;
+	}
+	
+	public void getsBumped() {
+		this.remove();
+	}
+
+} // end of Vampire class
