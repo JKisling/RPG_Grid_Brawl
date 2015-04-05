@@ -1,0 +1,26 @@
+package rpgGridBrawl;
+
+public class Dragon extends Brawler implements Nemesis {
+
+	public Dragon() {
+		pieceID = 8;
+		onBoard = false;
+		letterName = "DG";
+		isRed = false;
+		isBlue = false;
+		suit = 'W';
+		playground = new int[32];
+	}
+	
+	public boolean canAttack(Brawler victim) {
+		if (victim instanceof Ghost) return false;
+		if (victim instanceof Character) {
+			if ((victim.level + victim.clericDefenseBonus + victim.shieldBonus) > 4) return false;
+		}
+		return true;
+	}
+	
+	public void getsBumped() {
+		this.remove();
+	}	
+}
