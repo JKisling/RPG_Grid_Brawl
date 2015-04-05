@@ -1,0 +1,22 @@
+package rpgGridBrawl;
+
+public class Merchant extends Brawler implements NPC {
+
+	public Merchant() {
+		pieceID = 19;
+		onBoard = false;
+		letterName = "Ma";
+		isRed = false;
+		isBlue = false;
+		suit = 'R';
+		playground = new int[24];
+	}
+	
+	public boolean canAttack(Brawler victim) {
+		return false;
+	}
+	
+	public void getsBumped() {
+		this.remove();
+	}
+} // end of Merchant class
