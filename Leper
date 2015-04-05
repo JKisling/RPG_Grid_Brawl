@@ -1,0 +1,22 @@
+package rpgGridBrawl;
+
+public class Leper extends Brawler implements NPC {
+
+	public Leper() {
+		pieceID = 17;
+		onBoard = false;
+		letterName = "Le";
+		isRed = false;
+		isBlue = false;
+		suit = 'C';
+		playground = new int[24];
+	}
+	
+	public boolean canAttack(Brawler victim) {
+		return false;
+	}
+	
+	public void getsBumped() {
+		this.remove();
+	}
+}
