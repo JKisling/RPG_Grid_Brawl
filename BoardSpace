@@ -1,0 +1,84 @@
+package rpgGridBrawl;
+
+class BoardSpace {
+	private int column, row, BL, occupiedBy;
+	private boolean occupied, leperEffect, sentinelEffect, ghostEffect;
+	private String spaceID;
+	// note: the occupiedBy int refers to the slot in GameData.brawlers[], not the pieceID of the brawler itself.
+		
+	public BoardSpace(int BLInput, int columnInput, int rowInput) {
+		this.BL = BLInput;
+		this.column = columnInput;
+		this.row = rowInput;
+		this.occupied = false;
+		this.leperEffect = false;
+		this.sentinelEffect = false;
+		this.occupiedBy = -1;
+		String spaceIDA = Integer.toString(BLInput);
+		String spaceIDB = Integer.toString(columnInput);
+		String spaceIDC = Integer.toString(rowInput);
+		this.spaceID = spaceIDA + spaceIDB + spaceIDC;
+		
+	}
+	
+	public int getBL() {
+		return this.BL;
+	}
+	
+	public int getColumn() {
+		return this.column;
+	}
+	
+	public int getRow() {
+		return this.row;
+	}
+	
+	public int getOccupiedBy() {
+		return this.occupiedBy;
+	}
+	
+	public String getSpaceID() {
+		return this.spaceID;
+	}
+	
+	public boolean isGhostEffect() {
+		return this.ghostEffect;
+	}
+	
+	public boolean isLeperEffect() {
+		return this.leperEffect;
+	}
+	
+	public boolean isOccupied() {
+		return this.occupied;
+	}
+	
+	public boolean isSentinelEffect() {
+		return this.sentinelEffect;
+	}
+	
+	public void removeBrawler() {
+		this.setOccupied(false);
+		this.setOccupiedBy(-1);
+	}
+	
+	public void setGhostEffect(boolean state) {
+		this.ghostEffect = state;
+	}
+	public void setLeperEffect(boolean state) {
+		this.leperEffect = state;
+	}
+	
+	public void setOccupied(boolean state) {
+		this.occupied = state;
+	}
+	
+	public void setOccupiedBy(int pieceID) {
+		this.occupiedBy = pieceID;
+	}
+	 
+	public void setSentinelEffect(boolean state) {
+		this.sentinelEffect = state;
+	}
+	
+}
