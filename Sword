@@ -1,0 +1,22 @@
+package rpgGridBrawl;
+
+public class Sword extends Brawler implements Treasure {
+
+	public Sword() {
+		pieceID = 20;
+		onBoard = false;
+		letterName = "Sw";
+		isRed = false;
+		isBlue = false;
+		suit = 'W';
+		playground = new int[1];
+	}
+	
+	public void getsBumped() {
+		this.remove();
+	}
+	
+	public boolean canAttack(Brawler victim) {
+		return false;
+	}
+} // end of Sword Class
