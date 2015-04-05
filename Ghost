@@ -1,0 +1,22 @@
+package rpgGridBrawl;
+
+public class Ghost extends Brawler implements NPC {
+
+	public Ghost() {
+		pieceID = 18;
+		onBoard = false;
+		letterName = "Go";
+		isRed = false;
+		isBlue = false;
+		suit = 'M';
+		playground = new int[14];
+	}
+	
+	public boolean canAttack(Brawler victim) {
+		return false;
+	}
+	
+	public void getsBumped() {
+		this.remove();
+	}
+}
