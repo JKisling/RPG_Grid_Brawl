@@ -1,0 +1,29 @@
+package rpgGridBrawl;
+
+public class Sentinel extends Brawler implements Nemesis {
+
+	public Sentinel() {
+		pieceID = 11;
+		onBoard = false;
+		letterName = "ST";
+		isRed = false;
+		isBlue = false;
+		suit = 'R';
+		playground = new int[24];
+	}
+	
+	public boolean canAttack(Brawler victim) {
+		if (victim instanceof Ghost) return false;
+		if (victim instanceof Character) {
+			if ((victim.level + victim.clericDefenseBonus + victim.shieldBonus) > 4) return false;
+		}
+		return true;
+	}
+	
+	public void getsBumped() {
+		this.remove();
+	}
+
+} // end of Sentinel class
+
+
