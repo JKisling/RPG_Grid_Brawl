@@ -10,6 +10,7 @@ package rpgGridBrawl;
  */
 
 public abstract class Brawler {
+	
 	protected int floor, column, row, level, swordBonus, shieldBonus, clericDefenseBonus, possession, pieceID;
 	protected int[] playground;
 	protected char suit;
@@ -19,21 +20,65 @@ public abstract class Brawler {
 	// remember that pieceID describes the type of brawler, and the slot number in GameData.brawlers[] only coincides
 	// with Brawler.pieceID in the standard set of pieces.
 	
+	
 	public abstract boolean canAttack(Brawler victim);
+	public abstract int getFloor();
+	public abstract int getColumn();
+	public abstract int getRow();
+	public abstract int getLevel();
+	public abstract int getSwordBonus();
+	public abstract int getShieldBonus();
+	public abstract int getClericDefenseBonus();
+	public abstract int getPossession();
+	public abstract int getPieceID();
+	public abstract int[] getPlayground();
+	public abstract char getSuit();
+	public abstract boolean isOnBoard();
+	public abstract boolean isMoveable();
+	public abstract boolean isUsedLast();
+	public abstract boolean isRed();
+	public abstract boolean isBlue();
+	public abstract boolean isPoweredUp();
+	public abstract boolean isHandsFull();
+	public abstract boolean isGlorified();
+	public abstract String getLetterName();
+	
+	public abstract void setFloor(int x);
+	public abstract void setColumn(int x);
+	public abstract void setRow(int x);
+	public abstract void setLevel(int x);
+	public abstract void setSwordBonus(int x);
+	public abstract void setShieldBonus(int x);
+	public abstract void setClericDefenseBonus(int x);
+	public abstract void setPossession(int x);
+	public abstract void setPieceID(int x);
+	public abstract void setPlayground(int[] x);
+	public abstract void setOnBoard(boolean x);
+	public abstract void setUsedLast(boolean x);
+	public abstract void setPoweredUp(boolean x);
+	public abstract void setHandsFull(boolean x);
+	public abstract void setGlorified(boolean x);
+	
+	public void setAsRed(boolean x) { this.isRed = x; }
+	public void setAsBlue(boolean x) { this.isBlue = x; }
+	
+	
 	public abstract void getsBumped();
+	
 	public void remove() {
-		this.onBoard = false;
-		this.floor = 0;
-		this.row = 0;
-		this.column = 0;
-		this.usedLast = false;
-		if (!this.glorified && (this instanceof Character || this instanceof Monster)) this.level = 1;
+		this.setOnBoard(false);
+		this.setFloor(0);
+		this.setRow(0);
+		this.setColumn(0);
+		this.setUsedLast(false);
+		if (this instanceof Character || this instanceof Monster) this.setLevel(1);
+		if (this.isGlorified()) this.setLevel(4);
 	}
 	
 	public boolean isAdjacentToMe(int f, int c, int r) {
-		int cc = this.column;
-		int rr = this.row;
-		if (f != this.floor) return false;
+		int cc = this.getColumn();
+		int rr = this.getRow();
+		if (f != this.getFloor()) return false;
 		if ((c == cc) || (c - 1 == cc) || (c + 1 == cc)) {
 			if ((r + 1 == rr) || (r - 1 == rr)) return true;
 		}
@@ -41,5 +86,40 @@ public abstract class Brawler {
 			if ((c + 1 == cc) || (c - 1 == cc)) return true;
 		}
 		return false;
+	}
+	
+	// this outputs a string that goes into the status array of GameData and AInode objects.
+	public String toString() {
+		String build = "";
+		build = this.getPieceID() + ",";
+		if (this.isOnBoard()) build += "T,";
+		else build += "F,";
+		
+		if (this.isRed())build += "T,";
+		else build += "F,";
+	
+		if (this.isBlue())build += "T,";
+		else build += "F,";
+		
+		if (this.isHandsFull()) build += "T,";
+		else build += "F,";
+		
+		if (this.isGlorified()) build += "T,";
+		else build += "F,";
+		
+		if (this.isUsedLast()) build += "T,";
+		else build += "F,";
+		
+		if (this.isPoweredUp()) build += "T,";
+		else build += "F,";
+		
+		build += this.getLevel() + ",";
+		build += this.getFloor() + ",";
+		build += this.getColumn() + ",";
+		build += this.getRow() + ",";
+		build += this.getPossession() + ",";
+		build += this.getSwordBonus() + ",";
+		build += this.getShieldBonus();
+		return build;
 	}
 }
