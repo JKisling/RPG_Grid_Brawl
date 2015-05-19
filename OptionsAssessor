@@ -35,8 +35,8 @@ public class OptionsAssessor extends GridBrawl {
 	private boolean isDragonFirePossible(GameData GM) {
 		boolean isDF = false;
 		Brawler bahamut = new Dragon();
-		for (int i = 0; i < GM.getAllBrawlers().length; i++) if (GM.getBrawler(i) instanceof Dragon) bahamut = (Dragon) GM.getBrawler(i);
-		if (!bahamut.onBoard || bahamut.usedLast) return false;
+		for (int i = 0; i < GM.getAllBrawlers().length; i++) if (GM.getBrawler(i) instanceof Dragon) bahamut = GM.getBrawler(i);
+		if (!bahamut.isOnBoard() || bahamut.isUsedLast()) return false;
 		for (int j = 0; j < GM.getAllBrawlers().length; j++) if (los.calculate(GM, bahamut, GM.getBrawler(j))) isDF = true;
 		return isDF;
 	}
@@ -50,7 +50,7 @@ public class OptionsAssessor extends GridBrawl {
 			for (int j = 0; j < size; j++) {
 				if (GM.getLocation(1, i, j).isOccupied()) {
 					Brawler jimbo = GM.getBrawler(GM.getLocation(1, i, j).getOccupiedBy());
-					colorMatch = ((GM.isRedsTurn() && jimbo.isRed) || (!GM.isRedsTurn() && jimbo.isBlue));
+					colorMatch = ((GM.isRedsTurn() && jimbo.isRed()) || (!GM.isRedsTurn() && jimbo.isBlue()));
 					if (!colorMatch && jimbo instanceof Character ) isF = false;
 					else return true;
 				}
@@ -63,13 +63,13 @@ public class OptionsAssessor extends GridBrawl {
 		if (GM.isRedsTurn()) {
 			for (int r = 0; r < GM.getAllBrawlers().length; r++) {
 				Brawler reds = GM.getBrawler(r);
-				if (reds.isRed && reds.floor == 5 && !reds.usedLast && reds.level == 4 && !reds.glorified) return true;
+				if (reds.isRed() && reds.getFloor() == 5 && !reds.isUsedLast() && reds.getLevel() == 4 && !reds.isGlorified()) return true;
 			}
 		}
 		else {
 			for (int b = 0; b < GM.getAllBrawlers().length; b++) {
 				Brawler blues = GM.getBrawler(b);
-				if (blues.isBlue && blues.floor == 5 && !blues.usedLast && blues.level == 4 && !blues.glorified) return true;
+				if (blues.isBlue() && blues.getFloor() == 5 && !blues.isUsedLast() && blues.getLevel() == 4 && !blues.isGlorified()) return true;
 			}
 		}
 		return false;
@@ -81,31 +81,31 @@ public class OptionsAssessor extends GridBrawl {
 		boolean colorMatch = false;
 		for (int c = 0; c < GM.getAllBrawlers().length; c++) {
 			jimbo = GM.getBrawler(c);
-			colorMatch = ((GM.isRedsTurn() && jimbo.isRed) || (!GM.isRedsTurn() && jimbo.isBlue));
+			colorMatch = ((GM.isRedsTurn() && jimbo.isRed()) || (!GM.isRedsTurn() && jimbo.isBlue()));
 			if (jimbo instanceof Cleric && colorMatch) break;	
 		}
-		if (GM.isRedsTurn() && jimbo.onBoard && !jimbo.usedLast && !jimbo.glorified) { // cleric on board, not used last, not glorified
-			if (GM.getBrawler(0).onBoard && GM.getBrawler(0).level < 4) return true; // red warrior
-			if (GM.getBrawler(2).onBoard && GM.getBrawler(2).level < 4) return true; // red mage
-			if (GM.getBrawler(3).onBoard && GM.getBrawler(3).level < 4) return true; // red rogue
+		if (GM.isRedsTurn() && jimbo.isOnBoard() && !jimbo.isUsedLast() && !jimbo.isGlorified()) { // cleric on board, not used last, not glorified
+			if (GM.getBrawler(0).isOnBoard() && GM.getBrawler(0).getLevel() < 4) return true; // red warrior
+			if (GM.getBrawler(2).isOnBoard() && GM.getBrawler(2).getLevel() < 4) return true; // red mage
+			if (GM.getBrawler(3).isOnBoard() && GM.getBrawler(3).getLevel() < 4) return true; // red rogue
 		}
-		if (!GM.isRedsTurn() && jimbo.onBoard && !jimbo.usedLast && !jimbo.glorified) { // cleric on board, not used last, not glorified
-			if (GM.getBrawler(4).onBoard && GM.getBrawler(4).level < 4) return true; // blue warrior
-			if (GM.getBrawler(6).onBoard && GM.getBrawler(6).level < 4) return true; // blue mage
-			if (GM.getBrawler(7).onBoard && GM.getBrawler(7).level < 4) return true; // blue rogue
+		if (!GM.isRedsTurn() && jimbo.isOnBoard() && !jimbo.isUsedLast() && !jimbo.isGlorified()) { // cleric on board, not used last, not glorified
+			if (GM.getBrawler(4).isOnBoard() && GM.getBrawler(4).getLevel() < 4) return true; // blue warrior
+			if (GM.getBrawler(6).isOnBoard() && GM.getBrawler(6).getLevel() < 4) return true; // blue mage
+			if (GM.getBrawler(7).isOnBoard() && GM.getBrawler(7).getLevel() < 4) return true; // blue rogue
 		}
 		return false;
 	}
 	
-	// it is highly unlikely that this method would return false post game turn 11.
+	// it is highly unlikely that this method would return false post game turn 10.
 	private boolean isMovePossible(GameData GM) {
 		if (GM.getGameRound() < 10) return false;
 		int countRed = 0;	int countBlue = 0;
 		for (int m = 0; m < GM.getAllBrawlers().length; m++) {
 			Brawler mmm = GM.getBrawler(m);
-			if (!(mmm instanceof Treasure) && mmm.onBoard && !mmm.usedLast) {
-				if (!mmm.isRed) countBlue++;
-				if (!mmm.isBlue) countRed++;
+			if (!(mmm instanceof Treasure) && mmm.isOnBoard() && !mmm.isUsedLast()) {
+				if (!mmm.isRed()) countBlue++;
+				if (!mmm.isBlue()) countRed++;
 				if (countRed >= 1 && countBlue >= 1) return true;
 			}
 		}
@@ -119,18 +119,17 @@ public class OptionsAssessor extends GridBrawl {
 		boolean redVic = false;
 		// is current player's rogue on the board and powered up and hands-free
 		if (GM.isRedsTurn()) {
-			for (int i = 0; i < GM.getAllBrawlers().length; i++) if (GM.getBrawler(i) instanceof Rogue && GM.getBrawler(i).isRed) oneIwilly = (Rogue) GM.getBrawler(i);
+			for (int i = 0; i < GM.getAllBrawlers().length; i++) if (GM.getBrawler(i) instanceof Rogue && GM.getBrawler(i).isRed()) oneIwilly = (Rogue) GM.getBrawler(i);
 			redWilly = true;
 		}
-		else for (int i = 0; i < GM.getAllBrawlers().length; i++) if (GM.getBrawler(i) instanceof Rogue && GM.getBrawler(i).isBlue) oneIwilly = (Rogue) GM.getBrawler(i);
-		if (!oneIwilly.onBoard || !oneIwilly.poweredUp || oneIwilly.handsFull) return false;
+		else for (int i = 0; i < GM.getAllBrawlers().length; i++) if (GM.getBrawler(i) instanceof Rogue && GM.getBrawler(i).isBlue()) oneIwilly = (Rogue) GM.getBrawler(i);
+		if (!oneIwilly.isOnBoard() || !oneIwilly.isPoweredUp() || oneIwilly.isHandsFull()) return false;
 		
 		// is that rogue line-of-sight to an enemy character or monster who possesses treasure
-		Brawler victim = new Diamond(); // Diamond is arbitrary, this is just for initialization
 		for (int j = 0; j < GM.getAllBrawlers().length; j++) {
-			victim = GM.getBrawler(j);
-			redVic = victim.isRed;
-			if (!victim.onBoard || !victim.handsFull || (redWilly && redVic) || (!redWilly && !redVic)) continue;
+			Brawler victim = GM.getBrawler(j);
+			redVic = victim.isRed();
+			if (!victim.isOnBoard() || !victim.isHandsFull() || (redWilly && redVic) || (!redWilly && !redVic)) continue;
 			if (los.calculate(GM, oneIwilly, victim)) return true;	
 		}
 		return false;
@@ -140,7 +139,7 @@ public class OptionsAssessor extends GridBrawl {
 		boolean isP = false;
 		if ((GM.isRedsTurn() && GM.canRedPlace()) || (!GM.isRedsTurn() && GM.canBluePlace())) isP = true;
 		int k = 0;
-		for (int j = 0; j < GM.getAllBrawlers().length; j++) if (GM.getBrawler(j).onBoard) k++;
+		for (int j = 0; j < GM.getAllBrawlers().length; j++) if (GM.getBrawler(j).isOnBoard()) k++;
 		if (k == GM.getAllBrawlers().length) isP = false; // if all the brawlers are on the board, place will not be an option
 		if (k < 7) isP = true;  // fewer than 7 brawlers on board means you can always place as an action.
 		return isP;
@@ -152,17 +151,17 @@ public class OptionsAssessor extends GridBrawl {
 		if (GM.isRedsTurn()) mColor = 2; 
 		Brawler raistlin = new Mage(mColor);
 		if (GM.isRedsTurn()){
-			for (int i = 0; i < GM.getAllBrawlers().length; i++) if (GM.getBrawler(i) instanceof Mage && GM.getBrawler(i).isRed) raistlin = GM.getBrawler(i);
+			for (int i = 0; i < GM.getAllBrawlers().length; i++) if (GM.getBrawler(i) instanceof Mage && GM.getBrawler(i).isRed()) raistlin = GM.getBrawler(i);
 		}
 		else {
-			for (int i = 0; i < GM.getAllBrawlers().length; i++) if (GM.getBrawler(i) instanceof Mage && GM.getBrawler(i).isBlue) raistlin = GM.getBrawler(i);
+			for (int i = 0; i < GM.getAllBrawlers().length; i++) if (GM.getBrawler(i) instanceof Mage && GM.getBrawler(i).isBlue()) raistlin = GM.getBrawler(i);
 			
 		}
-		if (!raistlin.onBoard || !raistlin.handsFull) return false;
-		else pos = raistlin.possession;
+		if (!raistlin.isOnBoard() || !raistlin.isHandsFull()) return false;
+		else pos = raistlin.getPossession();
 		
-		if (raistlin.usedLast || !(GM.getBrawler(pos) instanceof Ring)) return false;
-		BoardSpace examined = GM.getLocation(raistlin.floor, raistlin.column, raistlin.row);
+		if (raistlin.isUsedLast() || !(GM.getBrawler(pos) instanceof Ring)) return false;
+		BoardSpace examined = GM.getLocation(raistlin.getFloor(), raistlin.getColumn(), raistlin.getRow());
 		if (examined.isGhostEffect()) return false; // if the mage is stuck next to a Ghost it can't do anything
 		for (int j = 0; j < GM.getAllBrawlers().length; j++) if (los.calculate(GM, raistlin, GM.getBrawler(j))) return true;
 		return false;
@@ -173,10 +172,11 @@ public class OptionsAssessor extends GridBrawl {
 		if (!GM.getLocation(5, 0, 0).isOccupied()) return false; // ascension space is not even occupied
 		int sackerID = GM.getLocation(5, 0, 0).getOccupiedBy();
 		Brawler sacrificer = GM.getBrawler(sackerID);
-		if (!sacrificer.handsFull || (GM.isRedsTurn() && sacrificer.isBlue) || (!GM.isRedsTurn() && sacrificer.isRed)) return false;
+		if (!sacrificer.isHandsFull() || (GM.isRedsTurn() && sacrificer.isBlue()) || (!GM.isRedsTurn() && sacrificer.isRed())) return false;
 		else return true;
 	}
 	
+	// assumes standard set of Brawlers
 	private boolean isSpendDiamondPossible(GameData GM) {
 		LineOfSight los = new LineOfSight();
 		Brawler[] myChars = new Brawler[4];
@@ -184,14 +184,14 @@ public class OptionsAssessor extends GridBrawl {
 			for (int r = 0; r < 4; r++) myChars[r] = GM.getBrawler(r);
 		}
 		else {
-			for (int b = 4; b < 8; b++) myChars[b] = GM.getBrawler(b);
+			for (int b = 0; b < 4; b++) myChars[b] = GM.getBrawler(b + 4);
 		}
 		Brawler merchant = GM.getBrawler(19);
 		Brawler sentinel = GM.getBrawler(11);
 		for (int rb = 0; rb < 4; rb++) {
-			if (myChars[rb].possession == 23) {
-				if (merchant.floor == myChars[rb].floor) return true;
-				if (myChars[rb] instanceof Rogue && sentinel.floor != myChars[rb].floor) {
+			if (myChars[rb].getPossession() == 23) {
+				if (merchant.getFloor() == myChars[rb].getFloor()) return true;
+				if (myChars[rb] instanceof Rogue && sentinel.getFloor() != myChars[rb].getFloor()) {
 					for (int j = 0; j < GM.getAllBrawlers().length; j++) if (los.calculate(GM, myChars[rb], GM.getBrawler(j))) return true;
 				}
 			}
@@ -210,38 +210,42 @@ public class OptionsAssessor extends GridBrawl {
 		if (GM.isRedsTurn()){
 			for (int t = 0; t < GM.getAllBrawlers().length; t++) {
 				Brawler ttt = GM.getBrawler(t);
-				if (ttt.isRed && ttt instanceof Warrior) walt = (Warrior) GM.getBrawler(t);
-				if (ttt.isRed && ttt instanceof Cleric) clara = (Cleric) GM.getBrawler(t);
-				if (ttt.isRed && ttt instanceof Mage) meg = (Mage) GM.getBrawler(t);
-				if (ttt.isRed && ttt instanceof Rogue) roy = (Rogue) GM.getBrawler(t);
+				if (ttt.isRed() && ttt instanceof Warrior) walt = (Warrior) GM.getBrawler(t);
+				if (ttt.isRed() && ttt instanceof Cleric) clara = (Cleric) GM.getBrawler(t);
+				if (ttt.isRed() && ttt instanceof Mage) meg = (Mage) GM.getBrawler(t);
+				if (ttt.isRed() && ttt instanceof Rogue) roy = (Rogue) GM.getBrawler(t);
 			}
 		}
 		else {
 			for (int u = 0; u < GM.getAllBrawlers().length; u++) {
 				Brawler uuu = GM.getBrawler(u);
-				if (uuu.isBlue && uuu instanceof Warrior) walt = (Warrior) GM.getBrawler(u);
-				if (uuu.isBlue && uuu instanceof Cleric) clara = (Cleric) GM.getBrawler(u);
-				if (uuu.isBlue && uuu instanceof Mage) meg = (Mage) GM.getBrawler(u);
-				if (uuu.isBlue && uuu instanceof Rogue) roy = (Rogue) GM.getBrawler(u);
+				if (uuu.isBlue() && uuu instanceof Warrior) walt = (Warrior) GM.getBrawler(u);
+				if (uuu.isBlue() && uuu instanceof Cleric) clara = (Cleric) GM.getBrawler(u);
+				if (uuu.isBlue() && uuu instanceof Mage) meg = (Mage) GM.getBrawler(u);
+				if (uuu.isBlue() && uuu instanceof Rogue) roy = (Rogue) GM.getBrawler(u);
 			}
 		}
-		boolean wf = walt.handsFull;
-		boolean cf = clara.handsFull;
-		boolean mf = meg.handsFull;
-		boolean rf = roy.handsFull;
+		boolean wf = walt.isHandsFull();
+		boolean cf = clara.isHandsFull();
+		boolean mf = meg.isHandsFull();
+		boolean rf = roy.isHandsFull();
+		boolean wlu = walt.isUsedLast();
+		boolean clu = clara.isUsedLast();
+		boolean mlu = meg.isUsedLast();
+		boolean rlu = roy.isUsedLast();
 		
 		// this is different than in Transfer class, because here I just need to find out if two characters are line of sight,
 		// and then if either one (but not both) possess a treasure.  If this is true for any one of these, then it will return true.
 		try {
-			cases[0] = (los.calculate(GM, walt, clara) && ((wf && !cf) || (!wf && cf)));
-			cases[1] = (los.calculate(GM, walt, meg)   && ((wf && !mf) || (!wf && mf)));
-			cases[2] = (los.calculate(GM, walt, roy)   && ((wf && !rf) || (!wf && rf)));
-			cases[3] = (los.calculate(GM, clara, meg)  && ((cf && !mf) || (!cf && mf)));
-			cases[4] = (los.calculate(GM, clara, roy)  && ((cf && !rf) || (!cf && rf)));
-			cases[5] = (los.calculate(GM, meg, roy)    && ((mf && !rf) || (!mf && rf)));
+			cases[0] = (los.calculate(GM, walt, clara) && ((wf && !cf && !wlu) || (!wf && cf && !clu)));
+			cases[1] = (los.calculate(GM, walt, meg)   && ((wf && !mf && !wlu) || (!wf && mf && !mlu)));
+			cases[2] = (los.calculate(GM, walt, roy)   && ((wf && !rf && !wlu) || (!wf && rf && !rlu)));
+			cases[3] = (los.calculate(GM, clara, meg)  && ((cf && !mf && !clu) || (!cf && mf && !mlu)));
+			cases[4] = (los.calculate(GM, clara, roy)  && ((cf && !rf && !clu) || (!cf && rf && !rlu)));
+			cases[5] = (los.calculate(GM, meg, roy)    && ((mf && !rf && !mlu) || (!mf && rf && !rlu)));
 		}
 		catch (NullPointerException ex) {
-			System.out.println("It still threw a NPE");
+			System.out.println("isTransferPossible() threw a NPE");
 			return false;
 		}
 		for (int p = 0; p <= 5; p++) if (cases[p]) return true;
