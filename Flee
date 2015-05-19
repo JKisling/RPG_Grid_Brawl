@@ -39,9 +39,9 @@ public class Flee extends GridBrawl {
 		boolean colorMatch = false;
 		for (int b = 0; b < bLength; b++) {
 			Brawler jimbo = game.getBrawler(b);
-			colorMatch = ((game.isRedsTurn() && jimbo.isRed) || (!game.isRedsTurn() && jimbo.isBlue));
+			colorMatch = ((game.isRedsTurn() && jimbo.isRed()) || (!game.isRedsTurn() && jimbo.isBlue()));
 			if ((jimbo instanceof Character) && !colorMatch) cowards[b] = false; // you can't make your opponent's Characters flee.
-			else if (jimbo.onBoard && (1 == jimbo.floor) && !jimbo.usedLast) cowards[b] = true;
+			else if (jimbo.isOnBoard() && (1 == jimbo.getFloor()) && !jimbo.isUsedLast()) cowards[b] = true;
 		}
 		return cowards;
 	}
