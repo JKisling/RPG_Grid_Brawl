@@ -82,7 +82,8 @@ class FileOptionsMenu extends GridBrawl {
 		chooser.setDialogTitle("Select a game file to load.");
 		checker = chooser.showOpenDialog(null);
 		if (checker == JFileChooser.APPROVE_OPTION) {
-			File nameDir = chooser.getCurrentDirectory();
+			// File nameDir = chooser.getCurrentDirectory();
+			chooser.getCurrentDirectory();
 			gameToLoad = chooser.getSelectedFile();
 		}
 		else {
@@ -144,7 +145,7 @@ class FileOptionsMenu extends GridBrawl {
 			interact.tellPlayer(1, 6, true); // "Save game already exists, would you like to overwrite it?");
 			proceed = interact.getYesOrNo();
 			if(proceed) {
-					boolean didjaDelete = fileObject.delete();
+					fileObject.delete();
 					fileObject = new File(saveFile);
 			}	
 		}
