@@ -7,26 +7,24 @@ Brawler gloryHound;
 	
 	// prereq: current player has an eligible piece on the Ascension space.
 	public GameData executeGlorification(GameData crt) {
-		gloryHound = new Diamond(); // diamond is arbitrary
-		crt.setSuccessfulTurn(false);
-		for (int a = 0; a < crt.getAllBrawlers().length; a++) if (crt.getBrawler(a).floor == 5) gloryHound = crt.getBrawler(a);
-		int id = gloryHound.pieceID;
-		interact.tellPlayer(interact.msgBuild(crt, 17, id), false); // "You are about to perform the ritual of Ascension on the " + BRWLRS[passIn] + "!"
+		gloryHound = crt.getBrawler(crt.getLocation(500).getOccupiedBy());
+		int id = gloryHound.getPieceID();
+		interact.tellPlayer(interact.msgBuild(crt, 17, id), false); // "You are about to perform the ritual of Glorification on the " + BRWLRS[passIn] + "!"
 		boolean confirm = interact.confirm();
 		if (!confirm) return crt;
-		if (gloryHound.handsFull) {
-			crt.dispossess(gloryHound.possession);
-			interact.tellPlayer(interact.msgBuild(crt, 19, gloryHound.possession), false); // "The " + BRWLRS[passIn] + " has returned to the pool."
+		if (gloryHound.isHandsFull()) {
+			crt.dispossess(gloryHound.getPossession());
+			interact.tellPlayer(interact.msgBuild(crt, 19, gloryHound.getPossession()), false); // "The " + BRWLRS[passIn] + " has returned to the pool."
 		}
 		crt = clearSpace(crt, id);
-		crt.getBrawler(id).glorified = true;
-		crt.getBrawler(id).level = 4;
+		crt.getBrawler(id).setGlorified(true);
 		if (crt.isRedsTurn()) crt.setRedCanPlace(true);
 		else crt.setBlueCanPlace(true);
 		crt = updateLastUsed(crt, id);
 		interact.tellPlayer(interact.msgBuild(crt, 18, id),  false); // "The " + BRWLRS[passIn] + " has left the board!"
 		interact.tellPlayer(6, 0, false); // "This Character is now permanently CL4."
 		crt.setSuccessfulTurn(true);
+		crt.updateGameRecord("glorify", BRWLRS[id], 500, "none");
 		interact.space();
 		return crt;
 	}
@@ -37,7 +35,7 @@ Brawler gloryHound;
 		boolean confirm;
 		int acolyte = crt.getLocation(5, 0, 0).getOccupiedBy();
 		gloryHound = crt.getBrawler(acolyte);
-		int lamb = gloryHound.possession;
+		int lamb = gloryHound.getPossession();
 		interact.tellPlayer(interact.msgBuild(crt, 20, lamb), false); // "You may sacrifice the " + BRWLRS[lamb]
 		boolean[] choices1 = this.generateSacrificeOptions(crt, lamb);
 		String choices2 = interact.reportOnSacrificeOptions(choices1);
@@ -59,6 +57,7 @@ Brawler gloryHound;
 				return crt;
 			}
 			crt.getBrawler(selection).remove();
+			crt.removeBrawler(selection);
 			interact.tellPlayer(interact.msgBuild(crt, 21, selection), false); // "The " + BRWLRS[selection] + " has been bumped off of the board!"
 			crt.dispossess(lamb);
 			crt.setSuccessfulTurn(true);
@@ -70,8 +69,9 @@ Brawler gloryHound;
 				crt.setSuccessfulTurn(false);
 				return crt;
 			}
-			crt.getBrawler(selection).level++;
-			String shieldReport = "The CL of the " + BRWLRS[selection] + " is raised to " + crt.getBrawler(selection).level + ".";
+			int newLevel = crt.getBrawler(selection).getLevel() + 1;
+			crt.getBrawler(selection).setLevel(newLevel);
+			String shieldReport = "The level of the " + BRWLRS[selection] + " is raised to " + crt.getBrawler(selection).getLevel() + ".";
 			interact.tellPlayer(shieldReport, false);
 			crt.dispossess(lamb);
 			crt.setSuccessfulTurn(true);
@@ -83,7 +83,7 @@ Brawler gloryHound;
 				crt.setSuccessfulTurn(false);
 				return crt;
 			}
-			crt.dispossess(22);
+			crt.dispossess(lamb);
 			crt.takePossession(selection, lamb);
 			interact.space();
 			crt.setSuccessfulTurn(true);
@@ -104,9 +104,12 @@ Brawler gloryHound;
 				crt.setSuccessfulTurn(false);
 				return crt;
 			}
-			crt.getBrawler(selection).floor = dstn[0];
-			crt.getBrawler(selection).column = dstn[1];
-			crt.getBrawler(selection).row = dstn[2];
+			crt.removeBrawler(selection);
+			crt.getBrawler(selection).setFloor(dstn[0]);
+			crt.getBrawler(selection).setColumn(dstn[1]);
+			crt.getBrawler(selection).setRow(dstn[2]);
+			crt.getLocation(destination).setOccupied(true);
+			crt.getLocation(destination).setOccupiedBy(selection);
 			crt.dispossess(lamb);
 			crt.setSuccessfulTurn(true);
 			break;
@@ -114,6 +117,8 @@ Brawler gloryHound;
 		if (crt.isRedsTurn()) crt.setRedCanPlace(true);
 		else crt.setBlueCanPlace(true);
 		crt = updateLastUsed(crt, lamb);
+		// produce separate game record updates for the four treasures
+		// crt.updateGameRecord("sacrifice", BRWLRS[lamb], 500, "none");
 		interact.space();
 		interact.tellPlayer(6, 6, false); // "The ritual of sacrifice was successfully performed."
 		interact.space();
@@ -128,22 +133,22 @@ Brawler gloryHound;
 		case 20: // sword
 			for (int i = 0; i < llength; i++) { // get all brawlers on board, except player's own characters
 				jimbo = crt.getBrawler(i);
-				boolean colorMatch = ((crt.isRedsTurn() && jimbo.isRed) || (!crt.isRedsTurn() && jimbo.isBlue));
-				if (colorMatch || !jimbo.onBoard) options[i] = false;
+				boolean colorMatch = ((crt.isRedsTurn() && jimbo.isRed()) || (!crt.isRedsTurn() && jimbo.isBlue()));
+				if (colorMatch || !jimbo.isOnBoard()) options[i] = false;
 				else options[i] = true;
 			}
 		case 21: // shield
 			for (int j = 0; j < llength; j++) { // get any of player's own characters or any monsters that are on board and not CL4
 				jimbo = crt.getBrawler(j);
-				boolean colorMatch = ((crt.isRedsTurn() && jimbo.isRed) || (!crt.isRedsTurn() && jimbo.isBlue));
-				if ((colorMatch || jimbo instanceof Monster) && jimbo.onBoard && jimbo.level < 4) options[j] = true;
+				boolean colorMatch = ((crt.isRedsTurn() && jimbo.isRed()) || (!crt.isRedsTurn() && jimbo.isBlue()));
+				if ((colorMatch || jimbo instanceof Monster) && jimbo.isOnBoard() && jimbo.getLevel() < 4) options[j] = true;
 				else options[j] = false;
 			}
 		case 22: // ring
 			for (int k = 0; k < llength; k++) { // get any of player's own characters or any monsters that are on board and not handsfull
 				jimbo = crt.getBrawler(k);
-				boolean colorMatch = ((crt.isRedsTurn() && jimbo.isRed) || (!crt.isRedsTurn() && jimbo.isBlue));
-				if (!jimbo.handsFull && jimbo.onBoard) {
+				boolean colorMatch = ((crt.isRedsTurn() && jimbo.isRed()) || (!crt.isRedsTurn() && jimbo.isBlue()));
+				if (!jimbo.isHandsFull() && jimbo.isOnBoard()) {
 					if ((jimbo instanceof Character && colorMatch) || jimbo instanceof Monster) options[k] = true;
 				}
 				else options[k] = false;
@@ -151,7 +156,7 @@ Brawler gloryHound;
 		case 23: // diamond
 			for (int m = 0; m < llength; m++) { // get any brawler that is on board
 				jimbo = crt.getBrawler(m);
-				if (jimbo.onBoard) options[m] = true;
+				if (jimbo.isOnBoard()) options[m] = true;
 				else options[m] = false;
 			}
 		}
