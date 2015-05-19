@@ -30,7 +30,8 @@ public class GameData {
 	
 	// alternate constructor that takes a "saveData" string as an argument and builds a GameData object from a saved game
 	public GameData(String loadData) {
-		Scanner ldr = new Scanner(loadData).useDelimiter(",");
+		Scanner ldr = new Scanner(loadData);
+		ldr.useDelimiter(",");
 		this.brawlers = makeSetOfPieces();
 		this.gameBoard = makeBoard();
 		String ldrRead = "";
@@ -52,46 +53,46 @@ public class GameData {
 		this.blueLastUsed = ldr.nextInt();
 		
 		for (int p = 0; p < this.brawlers.length; p++) { // set the current status of all of the brawlers
-			// ldrRead = ldr.next();
-			this.brawlers[p].pieceID = ldr.nextInt();
+			this.brawlers[p].setPieceID(ldr.nextInt());
 			ldrRead = ldr.next();
-			if ("T".equals(ldrRead)) this.brawlers[p].onBoard = true;
-			else this.brawlers[p].onBoard = false;
+			if ("T".equals(ldrRead)) this.brawlers[p].setOnBoard(true);
+			else this.brawlers[p].setOnBoard(false);
 			ldrRead = ldr.next();
-			if ("T".equals(ldrRead)) this.brawlers[p].isRed = true;
-			else this.brawlers[p].isRed = false;
+			if ("T".equals(ldrRead)) this.brawlers[p].setAsRed(true);
+			else this.brawlers[p].setAsRed(false);
 			ldrRead = ldr.next();
-			if ("T".equals(ldrRead)) this.brawlers[p].isBlue = true;
-			else this.brawlers[p].isBlue = false;
+			if ("T".equals(ldrRead)) this.brawlers[p].setAsBlue(true);
+			else this.brawlers[p].setAsBlue(true);
 			ldrRead = ldr.next();
-			if ("T".equals(ldrRead)) this.brawlers[p].handsFull = true;
-			else this.brawlers[p].handsFull = false;
+			if ("T".equals(ldrRead)) this.brawlers[p].setHandsFull(true);
+			else this.brawlers[p].setHandsFull(false);
 			ldrRead = ldr.next();
-			if ("T".equals(ldrRead)) this.brawlers[p].glorified = true;
-			else this.brawlers[p].glorified = false;
+			if ("T".equals(ldrRead)) this.brawlers[p].setGlorified(true);
+			else this.brawlers[p].setGlorified(false);
 			ldrRead = ldr.next();
-			if ("T".equals(ldrRead)) this.brawlers[p].usedLast = true;
-			else this.brawlers[p].usedLast = false;
+			if ("T".equals(ldrRead)) this.brawlers[p].setUsedLast(true);
+			else this.brawlers[p].setUsedLast(false);
 			ldrRead = ldr.next();
-			if ("T".equals(ldrRead)) this.brawlers[p].poweredUp = true;
-			else this.brawlers[p].poweredUp = false;
-			this.brawlers[p].level = ldr.nextInt();
-			this.brawlers[p].floor = ldr.nextInt();
-			this.brawlers[p].column = ldr.nextInt();
-			this.brawlers[p].row = ldr.nextInt();
-			this.brawlers[p].possession = ldr.nextInt();
-			this.brawlers[p].swordBonus = ldr.nextInt();
-			this.brawlers[p].shieldBonus = ldr.nextInt();
+			if ("T".equals(ldrRead)) this.brawlers[p].setPoweredUp(true);
+			else this.brawlers[p].setPoweredUp(false);
+			this.brawlers[p].setLevel(ldr.nextInt());
+			this.brawlers[p].setFloor(ldr.nextInt());
+			this.brawlers[p].setColumn(ldr.nextInt());
+			this.brawlers[p].setRow(ldr.nextInt());
+			this.brawlers[p].setPossession(ldr.nextInt());
+			this.brawlers[p].setSwordBonus(ldr.nextInt());
+			this.brawlers[p].setShieldBonus(ldr.nextInt());
 			
-			if (brawlers[p].onBoard) {
-				this.gameBoard[this.brawlers[p].floor][this.brawlers[p].column][this.brawlers[p].row].setOccupied(true);
-				this.gameBoard[this.brawlers[p].floor][this.brawlers[p].column][this.brawlers[p].row].setOccupiedBy(this.brawlers[p].pieceID);
+			if (brawlers[p].isOnBoard()) {
+				this.gameBoard[this.brawlers[p].getFloor()][this.brawlers[p].getColumn()][this.brawlers[p].getRow()].setOccupied(true);
+				this.gameBoard[this.brawlers[p].getFloor()][this.brawlers[p].getColumn()][this.brawlers[p].getRow()].setOccupiedBy(p);
 			}
 		}
 		this.updateSentinelAndLeperEffects();
 		this.updateGhostEffects();
 		this.updateTreasureEffects();
 		this.currentScore = new int[2];
+		
 		ldr.close();
 	} // end of loadData constructor
 	
@@ -106,8 +107,8 @@ public class GameData {
 		this.blueLastUsed = 4;
 		this.brawlers = makeSetOfPieces();
 		this.gameBoard = makeBoard();
-		this.brawlers[0].usedLast = true;
-		this.brawlers[4].usedLast = true;
+		this.brawlers[0].setUsedLast(true); // Warriors are arbitrarily set as last used
+		this.brawlers[4].setUsedLast(true);
 		randy = new Random();
 		int redLevels = 10;
 		int blueLevels = 10;
@@ -115,9 +116,9 @@ public class GameData {
 			boolean success = false;
 			while(!success) {
 				int blR = randy.nextInt(4) + 1;
-				if ((this.brawlers[i].isRed && redLevels < 7) || (this.brawlers[i].isBlue && blueLevels < 7)) blR--;
-				if ((this.brawlers[i].isRed && redLevels < 4) || (this.brawlers[i].isBlue && blueLevels < 4)) blR--;
-				if ((this.brawlers[i].isRed && redLevels < 3) || (this.brawlers[i].isBlue && blueLevels < 3) || blR < 1) blR = 1;
+				if ((this.brawlers[i].isRed() && redLevels < 7) || (this.brawlers[i].isBlue() && blueLevels < 7)) blR--;
+				if ((this.brawlers[i].isRed() && redLevels < 4) || (this.brawlers[i].isBlue() && blueLevels < 4)) blR--;
+				if ((this.brawlers[i].isRed() && redLevels < 3) || (this.brawlers[i].isBlue() && blueLevels < 3) || blR < 1) blR = 1;
 				int ccrr = 3;
 				switch (blR) {
 					case 1: ccrr = 5; break;
@@ -129,13 +130,13 @@ public class GameData {
 				if (!this.gameBoard[blR][cc][rr].isOccupied()) {
 					this.gameBoard[blR][cc][rr].setOccupied(true);
 					this.gameBoard[blR][cc][rr].setOccupiedBy(i);
-					this.brawlers[i].floor = blR;
-					this.brawlers[i].column = cc;
-					this.brawlers[i].row = rr;
-					this.brawlers[i].onBoard = true;
-					if (this.brawlers[i] instanceof Monster || this.brawlers[i] instanceof Character) this.brawlers[i].level = blR;
-					if (this.brawlers[i].isRed) redLevels -= blR;	
-					else if (this.brawlers[i].isBlue) blueLevels -= blR;
+					this.brawlers[i].setFloor(blR);
+					this.brawlers[i].setColumn(cc);
+					this.brawlers[i].setRow(rr);
+					this.brawlers[i].setOnBoard(true);
+					if (this.brawlers[i] instanceof Monster || this.brawlers[i] instanceof Character) this.brawlers[i].setLevel(blR);
+					if (this.brawlers[i].isRed()) redLevels -= blR;	
+					else if (this.brawlers[i].isBlue()) blueLevels -= blR;
 					success = true;
 				}
 			} // end of success while
@@ -159,20 +160,20 @@ public class GameData {
 		blueLastUsed = 4;
 		brawlers = makeSetOfPieces();
 		gameBoard = makeBoard();
-		brawlers[0].usedLast = true;
-		brawlers[4].usedLast = true;
+		brawlers[0].setUsedLast(true);
+		brawlers[4].setUsedLast(true);
 		randy = new Random();
 		boolean success = false;
-		brawlers[16].onBoard = true; // place the princess on the throne
-		brawlers[16].floor = 4;
-		brawlers[16].column = 0;
-		brawlers[16].row = 0;
+		brawlers[16].setOnBoard(true); // place the princess on the throne
+		brawlers[16].setFloor(4);
+		brawlers[16].setColumn(0);
+		brawlers[16].setRow(0);
 		gameBoard[4][0][0].setOccupied(true);
 		gameBoard[4][0][0].setOccupiedBy(16);
-		brawlers[8].onBoard = true; // place the dragon
-		brawlers[8].floor = 4;
-		brawlers[8].column = 1;
-		brawlers[8].row = 1;
+		brawlers[8].setOnBoard(true); // place the dragon
+		brawlers[8].setFloor(4);
+		brawlers[8].setColumn(1);
+		brawlers[8].setRow(1);
 		gameBoard[4][1][1].setOccupied(true);
 		gameBoard[4][1][1].setOccupiedBy(8);
 		for(int i = 0; i <= 23; i++) {
@@ -193,15 +194,15 @@ public class GameData {
 				if (!this.gameBoard[blR][cc][rr].isOccupied()) {
 					gameBoard[blR][cc][rr].setOccupied(true);
 					gameBoard[blR][cc][rr].setOccupiedBy(i);
-					brawlers[i].floor = blR;
-					brawlers[i].column = cc;
-					brawlers[i].row = rr;
-					brawlers[i].onBoard = true;
-					if (brawlers[i] instanceof Monster) brawlers[i].level = blR;
+					brawlers[i].setFloor(blR);
+					brawlers[i].setColumn(cc);
+					brawlers[i].setRow(rr);
+					brawlers[i].setOnBoard(true);
+					if (brawlers[i] instanceof Monster) brawlers[i].setLevel(blR);
 					success = true;
 				}	
 			} // end of success while
-		}	// end of for
+		}	// end of for loop through brawlers
 		this.updateStatusArray();
 		this.updateSentinelAndLeperEffects();
 		this.updateGhostEffects();
@@ -209,24 +210,24 @@ public class GameData {
 		this.currentScore = new int[2];
 	} // end of legal random round 11 game constructor
 	
+	// The "Playground" is a set of int references to board spaces to which a given Brawler could travel in a single turn.
+	// It includes occupied board spaces that the Brawler could, in theory, attack, but it doesn't determine if the attack is valid.
+	// This should eventually be converted into an ArrayList (which would work better) but that is a project for another day.
 	public int[] buildPlayground(int pieceID) {
 		int roughSize = 0;
 		int realSize = 0;
-		Brawler amie = brawlers[pieceID];
-		if (!amie.onBoard){
-			int[] offboardPlayground = {0};
-			return offboardPlayground;
-		}
-		switch (amie.suit) {
+		Brawler amie = this.getBrawler(pieceID);
+		if (!amie.isOnBoard()) { return new int[0]; }
+		switch (amie.getSuit()) {
 		case 'W': roughSize = 36;	realSize = 36;		break;
 		case 'C': roughSize = 50;	realSize = 28;		break;
 		case 'M': roughSize = 18;	realSize = 18;		break;
 		case 'R': roughSize = 64;	realSize = 30;		break;
 		}
 		int[] playground = new int[roughSize];
-		int bl = amie.floor * 100;
-		int cc = amie.column * 10;
-		int rr = amie.row;
+		int fl = amie.getFloor() * 100;
+		int cc = amie.getColumn() * 10;
+		int rr = amie.getRow();
 		int xy = 0; // the steadily increasing index for playground[]
 		int checker = 0; // the board space that gets passed into checkSpace()
 		int csCode = 0; // the int returned from checkSpace()
@@ -235,26 +236,26 @@ public class GameData {
 		boolean keepLooking = true;
 		
 		// The spaces above and below are common to all suits (with exceptions for Warrior and Rogue)
-		csCode = checkSpace(this, (bl + 100 + cc + rr));
+		csCode = checkSpace(this, (fl + 100 + cc + rr));
 		if (0 != csCode && !(amie instanceof Nemesis)) {
-			playground[xy++] = (bl + 100 + cc + rr);
-			if (2 == csCode && ('R' == amie.suit || (20 == amie.possession && amie instanceof Warrior))) {
-				csCode = checkSpace(this, (bl + 200 + cc + rr));
-				if (0 != csCode) playground[xy++] = (bl + 200 + cc + rr);
+			playground[xy++] = (fl + 100 + cc + rr);
+			if (2 == csCode && ('R' == amie.getSuit() || (20 == amie.getPossession() && amie instanceof Warrior))) {
+				csCode = checkSpace(this, (fl + 200 + cc + rr));
+				if (0 != csCode) playground[xy++] = (fl + 200 + cc + rr);
 			}
 		}
-		csCode = checkSpace(this, (bl - 100 + cc + rr));
+		csCode = checkSpace(this, (fl - 100 + cc + rr));
 		if (csCode != 0) {
-			playground[xy++] = (bl - 100 + cc + rr);
-			if (2 == csCode && ('R' == amie.suit || (20 == amie.possession && amie instanceof Warrior))) {
-				csCode = checkSpace(this, (bl - 200 + cc + rr));
-				if (0 != csCode) playground[xy++] = (bl - 200 + cc + rr);
+			playground[xy++] = (fl - 100 + cc + rr);
+			if (2 == csCode && ('R' == amie.getSuit() || (20 == amie.getPossession() && amie instanceof Warrior))) {
+				csCode = checkSpace(this, (fl - 200 + cc + rr));
+				if (0 != csCode) playground[xy++] = (fl - 200 + cc + rr);
 			}
 		}
-		switch(amie.suit) {
+		switch(amie.getSuit()) {
 		case 'W': // Warrior suit
 			travel = 3;
-			if (20 == amie.possession)travel = 4;
+			if (20 == amie.getPossession()) travel = 4;
 			for (int i = 0; i <= 7; i++) {
 				keepLooking = true;
 				switch (i) {
@@ -269,7 +270,7 @@ public class GameData {
 				}
 				for (int w = 1; w <= travel; w++) {
 					if (keepLooking) {
-						checker = ((offset * w) + bl + cc + rr);
+						checker = ((offset * w) + fl + cc + rr);
 						csCode = checkSpace(this, checker);
 						switch(csCode) {
 						case 0: // not a legit space
@@ -293,20 +294,20 @@ public class GameData {
 			for (int c = 0; c <= 7; c++) {
 				switch(c) {
 				case 0: oGroup[0] = -11;	oGroup[1] = -21;	oGroup[2] = -22;	oGroup[3] = -12;	oGroup[4] = -2;	oGroup[5] = -20; 	break;
-				case 1: oGroup[0] =  -1;	oGroup[1] = -12;	oGroup[2] =  -2;	oGroup[3] =   8; 	oGroup[4] = 0;	oGroup[5] = 0; 	break;
+				case 1: oGroup[0] =  -1;	oGroup[1] = -12;	oGroup[2] =  -2;	oGroup[3] =   8; 	oGroup[4] = 0;	oGroup[5] = 0; 		break;
 				case 2: oGroup[0] =   9;	oGroup[1] =   8;	oGroup[2] =  18;	oGroup[3] =  19;	oGroup[4] = -2;	oGroup[5] = 20; 	break;
-				case 3: oGroup[0] =  10;	oGroup[1] =  19;	oGroup[2] =  20;	oGroup[3] =  21; 	oGroup[4] = 0;	oGroup[5] = 0; 	break;
-				case 4: oGroup[0] =  11;	oGroup[1] =  21;	oGroup[2] =  22;	oGroup[3] =  12; 	oGroup[4] = 20;	oGroup[5] = 2; 	break;
-				case 5: oGroup[0] =   1;	oGroup[1] =  12;	oGroup[2] =   2;	oGroup[3] =  -8; 	oGroup[4] = 0;	oGroup[5] = 0; 	break;
+				case 3: oGroup[0] =  10;	oGroup[1] =  19;	oGroup[2] =  20;	oGroup[3] =  21; 	oGroup[4] = 0;	oGroup[5] = 0; 		break;
+				case 4: oGroup[0] =  11;	oGroup[1] =  21;	oGroup[2] =  22;	oGroup[3] =  12; 	oGroup[4] = 20;	oGroup[5] = 2; 		break;
+				case 5: oGroup[0] =   1;	oGroup[1] =  12;	oGroup[2] =   2;	oGroup[3] =  -8; 	oGroup[4] = 0;	oGroup[5] = 0; 		break;
 				case 6: oGroup[0] =  -9;	oGroup[1] =  -8;	oGroup[2] = -18;	oGroup[3] = -19;	oGroup[4] = 2;	oGroup[5] = -20; 	break;
-				case 7: oGroup[0] = -10;	oGroup[1] = -19;	oGroup[2] = -20;	oGroup[3] = -21; 	oGroup[4] = 0;	oGroup[5] = 0; 	break;
+				case 7: oGroup[0] = -10;	oGroup[1] = -19;	oGroup[2] = -20;	oGroup[3] = -21; 	oGroup[4] = 0;	oGroup[5] = 0; 		break;
 				}
-				csCode = checkSpace(this, (oGroup[0] + bl + cc + rr));
+				csCode = checkSpace(this, (oGroup[0] + fl + cc + rr));
 				if (0 != csCode) {
-					playground[xy++] = (oGroup[0] + bl + cc + rr);
+					playground[xy++] = (oGroup[0] + fl + cc + rr);
 					if (2 == csCode) {
 						for (int g = 1; g <= 5; g++) {
-							if (0 != checkSpace(this, ((oGroup[g] + bl + cc + rr)))) playground[xy++] = (oGroup[g] + bl + cc + rr);
+							if (0 != checkSpace(this, ((oGroup[g] + fl + cc + rr)))) playground[xy++] = (oGroup[g] + fl + cc + rr);
 						}
 					}
 				}
@@ -327,7 +328,7 @@ public class GameData {
 				case 7: offset = -10;	break;
 				}
 				for (int w = 1; w <= travel; w++) {
-					checker = (offset * w + bl + cc + rr);
+					checker = (offset * w + fl + cc + rr);
 					if (keepLooking) {
 						csCode = checkSpace(this, checker);
 						switch(csCode) {
@@ -357,7 +358,7 @@ public class GameData {
 				case 2: d1 = -10;	break;
 				case 3: d1 = 10;	break;
 				}
-				checker = bl + cc + rr + d1;
+				checker = fl + cc + rr + d1;
 				csCode = checkSpace(this, checker);
 				switch(csCode) {
 				case 0: keepLooking = false; continue;								// not a legit space
@@ -367,7 +368,7 @@ public class GameData {
 				if (keepLooking) {
 					for (int q = 0; q <= 1; q++) {
 						d2 = changeDirection(d1, q);
-						checker = bl + cc + rr + d1 + d2;
+						checker = fl + cc + rr + d1 + d2;
 						csCode = checkSpace(this, checker);
 						switch(csCode) {
 						case 0: keepLooking = false; continue;								// not a legit space
@@ -377,7 +378,7 @@ public class GameData {
 						if (keepLooking) {
 							for (int r = 0; r <= 1; r++) {
 								d3 = changeDirection(d2, r);
-								checker = bl + cc + rr + d1 + d2 + d3;
+								checker = fl + cc + rr + d1 + d2 + d3;
 								csCode = checkSpace(this, checker);
 								switch(csCode) {
 								case 0: keepLooking = false; continue;								// not a legit space
@@ -387,7 +388,7 @@ public class GameData {
 								if (keepLooking) {
 									for (int s = 0; s <= 1; s++) {
 										d4 = changeDirection(d3, s);
-										checker = bl + cc + rr + d1 + d2 + d3 + d4;
+										checker = fl + cc + rr + d1 + d2 + d3 + d4;
 										csCode = checkSpace(this, checker);
 										switch(csCode) {
 										case 0: keepLooking = false; continue;								// not a legit space
@@ -420,6 +421,7 @@ public class GameData {
 					realPlayground[v] = playground[q];
 				}
 				catch(ArrayIndexOutOfBoundsException ex) {
+					// this rarely happens but if it does, something needs to be fixed.
 					System.out.println("v = " + v + " and q = " + q + " and playground[q] = " + playground[q]);
 				}
 				v++;
@@ -428,6 +430,7 @@ public class GameData {
 		return realPlayground;
 	} // end of buildPlayground()
 	
+	// This is a helper method for buildPlayground() to determine which space should be examined next in Rogue suit
 	private static int changeDirection(int last, int whichPass) {
 		final int NORTH = -1;
 		final int SOUTH = 1;
@@ -453,6 +456,7 @@ public class GameData {
 		return next;
 	}
 	
+	// Another helper method for buildPlayground()
 	// this returns a 0 if the space is not real, a 1 if it's real but occupied, and a 2 if it's real and unoccupied
 	private static int checkSpace(GameData crt, int bcr) {
 		int[] bcrA = GridBrawl.splitBoardSpace(bcr);
@@ -469,20 +473,15 @@ public class GameData {
 	}
 	
 	public void dispossess(int treasureID) {
-		for (int b = 0; b < this.brawlers.length; b++) {
-			if (treasureID == this.brawlers[b].possession) {
-				this.brawlers[b].possession = -1;
-				this.brawlers[b].handsFull = false;
+		for (int b = 0; b < this.getAllBrawlers().length; b++) {
+			if (treasureID == this.getBrawler(b).getPossession()) {
+				this.getBrawler(b).setPossession(-1);
+				this.getBrawler(b).setHandsFull(false);
 			}
 		}
+		this.getBrawler(treasureID).remove();
 	}
 	
-	/**
-	 * private boolean redsTurn, redCanPlace, blueCanPlace, successfulTurn;
-	 * private int gameRound, redLastUsed, blueLastUsed, gameID;
-	 * private Brawler[] brawlers;
-	 * private BoardSpace[][][] gameBoard;
-	 */
 	public boolean isRedsTurn() {return this.redsTurn;}
 	public boolean isBluesTurn() {return !(this.redsTurn);}
 	public void setRedsTurn(boolean a) {this.redsTurn = a;}
@@ -516,6 +515,7 @@ public class GameData {
 		answer[0] = x % 10;
 		return this.gameBoard[answer[0]][answer[1]][answer[2]];
 	}
+	
 	public void setLocation(BoardSpace m, int fcr) {
 		int[] answer = new int[3];
 		int x = fcr;
@@ -547,7 +547,7 @@ public class GameData {
 		return gameBoard;
 	}
 		
-	// this builds the standard set of pieces
+	// this builds the standard set of Brawlers
 	public static Brawler[] makeSetOfPieces() {
 		Brawler[] freshSet = new Brawler[24];
 		Warrior  redWarrior  = new Warrior(0);			freshSet[0]  = redWarrior;
@@ -597,23 +597,22 @@ public class GameData {
 				j--;
 			}
 		}
-		//recursively sort two sub parts
 		if (low < j)  quickSort(arr, low, j);
 		if (high > i) quickSort(arr, i, high);
 	}
 	
 	public void rebuildAllPlaygrounds() {
 		for (int j = 0; j < this.brawlers.length; j++) {
-			this.brawlers[j].playground = this.buildPlayground(j);
+			this.getBrawler(j).setPlayground(this.buildPlayground(j));
 		}
 	}
 	
 	public void removeBrawler(int pieceID) {
-		int bl = this.brawlers[pieceID].floor;
-		int cc = this.brawlers[pieceID].column;
-		int rr = this.brawlers[pieceID].row;
-		this.gameBoard[bl][cc][rr].setOccupied(false);
-		this.gameBoard[bl][cc][rr].setOccupiedBy(-1);
+		int fl = this.getBrawler(pieceID).getFloor();
+		int cc = this.getBrawler(pieceID).getColumn();
+		int rr = this.getBrawler(pieceID).getRow();
+		this.getLocation(fl, cc, rr).setOccupied(false);
+		this.getLocation(fl, cc, rr).setOccupiedBy(-1);
 	}
 
 	public void switchTurns() {
@@ -623,12 +622,12 @@ public class GameData {
 
 	public void takePossession(int taker, int loot) {
 		this.dispossess(loot);
-		this.brawlers[taker].handsFull = true;
-		this.brawlers[taker].possession = loot;
-		this.brawlers[loot].onBoard = true;
-		this.brawlers[loot].floor = this.brawlers[taker].floor;
-		this.brawlers[loot].column = this.brawlers[taker].column;
-		this.brawlers[loot].row = this.brawlers[taker].row;
+		this.getBrawler(taker).setHandsFull(true);
+		this.getBrawler(taker).setPossession(loot);
+		this.getBrawler(loot).setOnBoard(true);
+		this.getBrawler(loot).setFloor(this.getBrawler(taker).getFloor());
+		this.getBrawler(loot).setColumn(this.getBrawler(taker).getColumn());
+		this.getBrawler(loot).setRow(this.getBrawler(taker).getRow());
 	}
 	
 	// overrides toString() in order to convert a GameData object into a readable string
@@ -646,7 +645,7 @@ public class GameData {
 		else saveData += "F,";
 		saveData += this.redLastUsed + ",";
 		saveData += this.blueLastUsed + ",";
-		for (int i = 0; i < this.brawlers.length; i++) saveData += this.status[i] + ",";
+		for (int i = 0; i < this.getAllBrawlers().length; i++) saveData += this.status[i] + ",";
 		return saveData;	
 	}
 
@@ -675,21 +674,21 @@ public class GameData {
 		}
 		Brawler ghost = new Ghost();
 		for (int g = 0; g < this.brawlers.length; g++) if (this.brawlers[g] instanceof Ghost) ghost = this.brawlers[g];
-		if (ghost.onBoard) {
+		if (ghost.isOnBoard()) {
 			int q = 4;
-			if (ghost.floor == 2) q = 3;
-			else if (ghost.floor > 2) q = 2;
-			int cc = ghost.column;
-			int rr = ghost.row;
-			
-			if ((cc > 0) && (rr > 0)) this.gameBoard[ghost.floor][cc - 1][rr - 1].setGhostEffect(true);
-			if ((cc < q) && (rr > 0)) this.gameBoard[ghost.floor][cc + 1][rr - 1].setGhostEffect(true);
-			if ((cc < q) && (rr < q)) this.gameBoard[ghost.floor][cc + 1][rr + 1].setGhostEffect(true);
-			if ((cc > 0) && (rr < q)) this.gameBoard[ghost.floor][cc - 1][rr + 1].setGhostEffect(true);
-			if (rr > 0) this.gameBoard[ghost.floor][cc][rr - 1].setGhostEffect(true);
-			if (rr < q) this.gameBoard[ghost.floor][cc][rr + 1].setGhostEffect(true);
-			if (cc > 0) this.gameBoard[ghost.floor][cc - 1][rr].setGhostEffect(true);
-			if (cc < q) this.gameBoard[ghost.floor][cc + 1][rr].setGhostEffect(true);	
+			int fl = ghost.getFloor();
+			if (2 == fl) q = 3;
+			else if (fl > 2) q = 2;
+			int cc = ghost.getColumn();
+			int rr = ghost.getRow();
+			if ((cc > 0) && (rr > 0)) this.gameBoard[fl][cc - 1][rr - 1].setGhostEffect(true);
+			if ((cc < q) && (rr > 0)) this.gameBoard[fl][cc + 1][rr - 1].setGhostEffect(true);
+			if ((cc < q) && (rr < q)) this.gameBoard[fl][cc + 1][rr + 1].setGhostEffect(true);
+			if ((cc > 0) && (rr < q)) this.gameBoard[fl][cc - 1][rr + 1].setGhostEffect(true);
+			if (rr > 0) this.gameBoard[fl][cc][rr - 1].setGhostEffect(true);
+			if (rr < q) this.gameBoard[fl][cc][rr + 1].setGhostEffect(true);
+			if (cc > 0) this.gameBoard[fl][cc - 1][rr].setGhostEffect(true);
+			if (cc < q) this.gameBoard[fl][cc + 1][rr].setGhostEffect(true);	
 		}
 	}
 
@@ -699,11 +698,11 @@ public class GameData {
 			int sentinelLevel = 0;
 			int leperLevel = 0;
 			for (int i = 0; i < this.brawlers.length; i++) {
-				if (this.brawlers[i] instanceof Sentinel && this.brawlers[i].onBoard) sentinelLevel = i;
-				if (this.brawlers[i] instanceof Leper && this.brawlers[i].onBoard) leperLevel = i;
+				if (this.brawlers[i] instanceof Sentinel && this.brawlers[i].isOnBoard()) sentinelLevel = i;
+				if (this.brawlers[i] instanceof Leper && this.brawlers[i].isOnBoard()) leperLevel = i;
 			}
-			if (sentinelLevel != 0) sentinelLevel = this.brawlers[sentinelLevel].floor;
-			if (leperLevel != 0) leperLevel = this.brawlers[leperLevel].floor;
+			if (sentinelLevel != 0) sentinelLevel = this.brawlers[sentinelLevel].getFloor();
+			if (leperLevel != 0) leperLevel = this.brawlers[leperLevel].getFloor();
 			
 			// turn on sentinel and leper effects on board levels where they are, and turn them off where they aren't
 			for (int bl = 1; bl <= 4; bl++) {
@@ -730,60 +729,59 @@ public class GameData {
 	public void updateStatusArray() {
 		String build = "";
 		for (int b = 0; b < brawlers.length; b++) {
-			Brawler fred = this.brawlers[b];
-			build = fred.pieceID + ",";
-			if (fred.onBoard) build += "T,";
+			Brawler fred = this.getBrawler(b);
+			build = fred.getPieceID() + ",";
+			if (fred.isOnBoard()) build += "T,";
 			else build += "F,";
 			
-			if (fred.isRed)build += "T,";
+			if (fred.isRed())build += "T,";
+			else build += "F,";
+		
+			if (fred.isBlue())build += "T,";
 			else build += "F,";
 			
-			if (fred.isBlue)build += "T,";
+			if (fred.isHandsFull()) build += "T,";
 			else build += "F,";
 			
-			if (fred.handsFull) build += "T,";
+			if (fred.isGlorified()) build += "T,";
 			else build += "F,";
 			
-			if (fred.glorified) build += "T,";
+			if (fred.isUsedLast()) build += "T,";
 			else build += "F,";
 			
-			if (fred.usedLast) build += "T,";
+			if (fred.isPoweredUp()) build += "T,";
 			else build += "F,";
 			
-			if (fred.poweredUp) build += "T,";
-			else build += "F,";
-			
-			build += fred.level + ",";
-			build += fred.floor + ",";
-			build += fred.column + ",";
-			build += fred.row + ",";
-			build += fred.possession + ",";
-			build += fred.swordBonus + ",";
-			build += fred.shieldBonus;
-			
+			build += fred.getLevel() + ",";
+			build += fred.getFloor() + ",";
+			build += fred.getColumn() + ",";
+			build += fred.getRow() + ",";
+			build += fred.getPossession() + ",";
+			build += fred.getSwordBonus() + ",";
+			build += fred.getShieldBonus();
 			this.status[b] = build;
 		}
 	}
 
 	public void updateTreasureEffects() {
-		Sword swd = new Sword();
-		Shield shd = new Shield();
-		Ring rng = new Ring();
-		for (int b = 0; b < this.brawlers.length; b ++) {
-			if (this.brawlers[b] instanceof Sword) swd = (Sword) this.brawlers[b];
-			if (this.brawlers[b] instanceof Shield) shd = (Shield) this.brawlers[b];
-			if (this.brawlers[b] instanceof Ring) rng = (Ring) this.brawlers[b];
+		Brawler swd = new Sword();
+		Brawler shd = new Shield();
+		Brawler rng = new Ring();
+		for (int b = 0; b < this.getAllBrawlers().length; b ++) {
+			if (this.getBrawler(b) instanceof Sword) swd = (Sword) this.getBrawler(b);
+			if (this.getBrawler(b) instanceof Shield) shd = (Shield) this.getBrawler(b);
+			if (this.getBrawler(b) instanceof Ring) rng = (Ring) this.getBrawler(b);
 		}
-		for (int c = 0; c < this.brawlers.length; c ++) {
-			if (this.brawlers[c] instanceof Character && swd.pieceID == this.brawlers[c].possession) this.brawlers[c].swordBonus = 1;
-			else this.brawlers[c].swordBonus = 0;
+		for (int c = 0; c < this.getAllBrawlers().length; c ++) {
+			if (this.getBrawler(c) instanceof Character && swd.getPieceID() == this.getBrawler(c).getPossession()) this.getBrawler(c).setSwordBonus(1);
+			else this.getBrawler(c).setSwordBonus(0);
 			
-			if (this.brawlers[c] instanceof Character && shd.pieceID == this.brawlers[c].possession) this.brawlers[c].shieldBonus = 1;
-			else this.brawlers[c].shieldBonus = 0;
+			if (this.getBrawler(c) instanceof Character && shd.getPieceID() == this.getBrawler(c).getPossession()) this.getBrawler(c).setShieldBonus(1);
+			else this.getBrawler(c).setShieldBonus(0);
 			
-			if (this.brawlers[c] instanceof Character && rng.pieceID == this.brawlers[c].possession) this.brawlers[c].poweredUp = true;
-			else if (this.brawlers[c] instanceof Character && this.brawlers[c].level >= 3) this.brawlers[c].poweredUp = true;
-			else this.brawlers[c].poweredUp = false;
+			if (this.getBrawler(c) instanceof Character && rng.getPieceID() == this.getBrawler(c).getPossession()) this.getBrawler(c).setPoweredUp(true);
+			else if (this.getBrawler(c) instanceof Character && this.getBrawler(c).getLevel() >= 3) this.getBrawler(c).setPoweredUp(true);
+			else this.getBrawler(c).setPoweredUp(false);
 		}
 	}
 } // end of GameData class
