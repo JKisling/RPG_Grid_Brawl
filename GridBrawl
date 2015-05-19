@@ -1,8 +1,5 @@
 package rpgGridBrawl;
-import java.util.Random;
-import java.util.Scanner;
 import javax.swing.JFrame;
-import java.io.*;
 
 /*
  * 	RPG GRID BRAWL
@@ -24,7 +21,6 @@ public class GridBrawl {
 	protected static Move move;
 	protected static Pickpocket pickpocket;
 	protected static Place place;
-	// protected static PlacementScore placementScore;
 	private static OptionsAssessor optionsAssessor;
 	protected static Spend spend;
 	protected static Transfer transfer;
@@ -36,6 +32,7 @@ public class GridBrawl {
 	public static void main(String[] args) {
 		interact = new Interaction();
 		GameData crtGame = new GameData();
+		flee = new Flee();
 		FOmenu = new FileOptionsMenu();
 		gameEditor = new GameEditor();
 		place = new Place();
@@ -47,11 +44,8 @@ public class GridBrawl {
 		transfer = new Transfer();
 		spend = new Spend();
 		pickpocket = new Pickpocket();
-		// placementScore = new PlacementScore();
-		Flee flee = new Flee();
 		
 		int winCondition = 0;
-		// boolean PSalreadyCalculated = false;
 		boolean selectGood = false;
 		interact.tellPlayer(0, 0, false); // "Welcome to RPG Grid Brawl"
 		interact.space();
@@ -136,8 +130,8 @@ public class GridBrawl {
 				case 0: crtGame = FOmenu.execute(crtGame); 							break;
 				case 1: crtGame =  place.execute(crtGame);							break;
 				case 2: crtGame =  move.execute(crtGame);							break;
-				case 3: crtGame =  glorification.executeSacrifice(crtGame);				break;
-				case 4: crtGame =  glorification.executeGlorification(crtGame);				break;
+				case 3: crtGame =  glorification.executeSacrifice(crtGame);			break;
+				case 4: crtGame =  glorification.executeGlorification(crtGame);		break;
 				case 5: crtGame =  transfer.execute(crtGame);						break;
 				case 6: crtGame =  spend.execute(crtGame);							break;
 				case 7: crtGame =  humble.execute(crtGame);							break;
@@ -150,10 +144,10 @@ public class GridBrawl {
 					int rlu = crtGame.getRedLastUsed();
 					int blu = crtGame.getBlueLastUsed();
 					if (rlu == -1 || blu == -1) dtBL = 1; // it's the first round of the game
-					else if (crtGame.isRedsTurn()) dtBL = crtGame.getBrawler(blu).floor;
-					else dtBL = crtGame.getBrawler(rlu).floor;
+					else if (crtGame.isRedsTurn()) dtBL = crtGame.getBrawler(blu).getFloor();
+					else dtBL = crtGame.getBrawler(rlu).getFloor();
 					if (dtBL == 5) dtBL = 4;  // The ascension space is drawn on the page with BL 4
-					if (dtBL == 0) dtBL = 1; // Sometimes the piece last used is removed, i.e. humbling a CL1 cleric
+					if (dtBL == 0) dtBL = 1; // Sometimes the piece last used is removed, e.g. humbling a CL1 Cleric
 					JFrame frame = new JFrame(crtGame.gameName);
 					frame.getContentPane().add(new DrawBoard(crtGame, dtBL));
 					frame.pack();
@@ -180,7 +174,7 @@ public class GridBrawl {
 		for (int t = 0; t < crt.getAllBrawlers().length; t++) {
 			// You can't shoot at or breathe fire on Treasures.
 			if (los.calculate(crt, shooter, crt.getBrawler(t)) && !(crt.getBrawler(t) instanceof Treasure) && TLplace <= 7) {
-				targetList[TLplace] = crt.getBrawler(t).pieceID;
+				targetList[TLplace] = crt.getBrawler(t).getPieceID();
 				TLplace++;
 			}
 		}
@@ -194,33 +188,25 @@ public class GridBrawl {
 		return targetList;
 	}	
 	
-	protected static int checkForChainBumps(GameData crtCCB, int bcr) {
-		int[] bcrC = splitBoardSpace(bcr);
-		int counter = 1; // we are assuming at least one bump down.
-		int checkOne = crtCCB.getBrawler(crtCCB.getLocation(bcrC[0], bcrC[1], bcrC[2]).getOccupiedBy()).pieceID;
-		Brawler victim = crtCCB.getBrawler(checkOne);
-		// this next line is an experiment to see if I can keep Treasures from getting bumped
-		if (victim instanceof Treasure) return 0;
-		if (!(victim instanceof Character || victim instanceof Monster) || victim.level == 1 || victim.floor == 1) return 1;
+	protected static int countChainBumpVictims(GameData crtCB, int fcr) {
+		Brawler victim1 = crtCB.getBrawler(crtCB.getLocation(fcr).getOccupiedBy());
+		if (victim1 instanceof Treasure) return 0;
+		if (!(victim1 instanceof Character || victim1 instanceof Monster) || victim1.getLevel() == 1 || victim1.getFloor() == 1) return 1;
+		int counter = 1;
 		boolean keepLooking = true;
 		while (keepLooking) {
-			bcr -= 100;
-			bcrC = splitBoardSpace(bcr);
-			if (!isLegitSpace(crtCCB, bcr)) return counter;
-			try {
-				keepLooking = crtCCB.getLocation(bcrC[0], bcrC[1], bcrC[2]).isOccupied();
-			}
-			catch (NullPointerException ex) {
-				return counter;	
-			}
+			fcr -= 100;
+			if (!isLegitSpace(crtCB, fcr)) return counter;
+			try { keepLooking = crtCB.getLocation(fcr).isOccupied(); }
+			catch (NullPointerException ex) { return counter; }
 			if (keepLooking) {
+				Brawler nextVictim = crtCB.getBrawler(crtCB.getLocation(fcr).getOccupiedBy());
+				if (!(nextVictim instanceof Character || nextVictim instanceof Monster) || 
+						nextVictim.getLevel() == 1 || nextVictim.getFloor() == 1) keepLooking = false;
 				counter++;
-				int checkNext = crtCCB.getBrawler(crtCCB.getLocation(bcrC[0], bcrC[1], bcrC[2]).getOccupiedBy()).pieceID;
-				victim = crtCCB.getBrawler(checkNext);
-				if (!(victim instanceof Character || victim instanceof Monster) || victim.level == 1 || victim.floor == 1) keepLooking = false;
 			}
 		}
-		return counter;
+		return counter;	
 	}
 	
 	protected static GameData clearSpace(GameData game, int pieceID) {
@@ -252,11 +238,11 @@ public class GridBrawl {
 		return GM;
 	}
 	
+	// condition 0: no win condition
+	// condition 1: Red wins up		condition 2: Blue wins up
+	// condition 3: Red wins down	condition 4: Blue wins down
 	private static int evaluateWinCondition(GameData GM) {
 		int condition = 0;
-		// condition 0: no win condition
-		// condition 1: Red wins up		condition 2: Blue wins up
-		// condition 3: Red wins down	condition 4: Blue wins down
 		if (!GM.isSuccessfulTurn()) return 0; // don't check for a win if it wasn't a legit turn (backed out, looked at board, etc.)
 		int redChars = 0;
 		int blueChars = 0;
@@ -265,55 +251,62 @@ public class GridBrawl {
 		boolean brawlIsOn = (GM.getGameRound() > 10);
 		for (int b = 0; b < GM.getAllBrawlers().length; b++) {
 			Brawler guy = GM.getBrawler(b);
-			if (guy instanceof Character && guy.onBoard && guy.isRed) redChars++;
-			if (guy instanceof Character && guy.onBoard && guy.isBlue) blueChars++;
-			if (guy.isRed  && guy.glorified) redGlory++;
-			if (guy.isBlue && guy.glorified) blueGlory++;
+			if (guy instanceof Character && guy.isOnBoard() && guy.isRed()) redChars++;
+			if (guy instanceof Character && guy.isOnBoard() && guy.isBlue()) blueChars++;
+			if (guy.isRed()  && guy.isGlorified()) redGlory++;
+			if (guy.isBlue() && guy.isGlorified()) blueGlory++;
 		}
-		if (brawlIsOn && redGlory == 4)  condition = 1;
-		if (brawlIsOn && blueGlory == 4) condition = 2;
+		if (brawlIsOn && (redGlory - blueGlory >= 2))  condition = 1;
+		if (brawlIsOn && (blueGlory - redGlory >= 2)) condition = 2;
 		if (brawlIsOn && blueChars == 0)  condition = 3;
 		if (brawlIsOn && redChars == 0)   condition = 4;
 		return condition;
 	}
 	
-	protected static boolean isLegitSpace(GameData crtILS, int bcr) {
-		try {
-			int[] bcrA = splitBoardSpace(bcr);
-			BoardSpace tryMe = crtILS.getLocation(bcrA[0], bcrA[1], bcrA[2]);
-		}
-		catch(ArrayIndexOutOfBoundsException ex) {
-			return false;
-		}
+	// assumes standard board config (ccrr variable)
+	protected static boolean isLegitSpace(GameData crtILS, int fcr) {
+		int[] split = splitBoardSpace(fcr);
+		int ccrr = 3;
+		if (split[0] == 2) ccrr = 4;
+		if (split[0] == 1) ccrr = 5;
+		
+		if (split[0] == 5 && (split[1] != 0 || split[2] != 0)) return false;
+		if (split[0] < 0 || split[0] > 5) return false;
+		else if (split[1] < 0 || split[1] >= ccrr) return false;
+		else if (split[2] < 0 || split[2] >= ccrr) return false;
 		return true;
 	}
 	
 	public static boolean isNumeric(String str) {
 		  return str.matches("-?\\d+(\\.\\d+)?");  //match a number with optional '-' and decimal.
 	}
-		
+	
 	// this is helper method 02 for finishMoveTurn, also used in DragonFire and RingAttack
 	// it takes in GameData object, int of space on which to start bumps, and counter from checkForChainBumps()
-	// it returns GameData object, with all "bump downs" performed
+	// it returns GameData object, with all "bump downs" executed
 	protected static GameData performBumpDowns(GameData crtPBD, int bumps, int startSpace) {
-		Interaction interact = new Interaction();
 		int[] bcrP = new int[3];
 		bcrP = splitBoardSpace(startSpace);
-		String jklm = "";
+		String jklm = "\n";
 		String report = "";
 		while (bumps > 0) {
-			int bumpMe = crtPBD.getLocation((bcrP[0] - bumps + 1), bcrP[1], bcrP[2]).getOccupiedBy();
+			// if bumps == 1 then we have just 1 victim left, the one on the startspace.
+			int bumpMe = crtPBD.getLocation((bcrP[0] - (bumps - 1)), bcrP[1], bcrP[2]).getOccupiedBy();
 			crtPBD.getBrawler(bumpMe).getsBumped();
-			if (!crtPBD.getBrawler(bumpMe).onBoard && !(crtPBD.getBrawler(bumpMe) instanceof Treasure)) {
+			if (!crtPBD.getBrawler(bumpMe).isOnBoard()) {
 				jklm = interact.msgBuild(crtPBD, 21, bumpMe); // "The " + BRWLRS[bumpMe] + " has been bumped off of the board!"
+				crtPBD.getLocation((bcrP[0] - (bumps - 1)), bcrP[1], bcrP[2]).setOccupied(false);
+				crtPBD.getLocation((bcrP[0] - (bumps - 1)), bcrP[1], bcrP[2]).setOccupiedBy(-1);
 			}
-			else {
-				crtPBD.getLocation((bcrP[0] - bumps), bcrP[1], bcrP[2]).setOccupied(true);
-				crtPBD.getLocation((bcrP[0] - bumps), bcrP[1], bcrP[2]).setOccupiedBy(bumpMe);
-				String newSpace = startSpace - (100 * bumps) + "";
+			else { // bumpMe is still on the board
+				System.out.println("bumps = " + bumps);
+				crtPBD.getLocation((bcrP[0] - (bumps - 1) - 1), bcrP[1], bcrP[2]).setOccupied(true);
+				crtPBD.getLocation((bcrP[0] - (bumps - 1) - 1), bcrP[1], bcrP[2]).setOccupiedBy(bumpMe);
+				String newSpace = (100 * (bcrP[0] - (bumps - 1) - 1)) + (10 * bcrP[1]) + bcrP[2] + "";
 				jklm = ("The " + BRWLRS[bumpMe] + " has been bumped down to space #" + newSpace + ".");
-				if (crtPBD.getBrawler(bumpMe) instanceof Character || crtPBD.getBrawler(bumpMe) instanceof Monster) {
-					jklm += ("\n   Its CL has been lowered to " + crtPBD.getBrawler(bumpMe).level + ".\n");
+				Brawler victim = crtPBD.getBrawler(bumpMe);
+				if (victim instanceof Monster || (victim instanceof Character && !victim.isGlorified())) {
+					jklm += ("\n   Its level has been lowered to " + crtPBD.getBrawler(bumpMe).getLevel() + ".\n");
 				}
 			}
 			report = jklm + "\n" + report;
@@ -338,17 +331,17 @@ public class GridBrawl {
 	public static GameData updateLastUsed(GameData uLU, int piece_ID) {
 		if (uLU.isRedsTurn()) {
 			int uluLU = uLU.getRedLastUsed();
-			if(uluLU != -1) uLU.getBrawler(uluLU).usedLast = false; //whichever piece was used last is now available again
+			if(uluLU != -1) uLU.getBrawler(uluLU).setUsedLast(false); //whichever piece was used last is now available again
 			uLU.setRedLastUsed(piece_ID);
-			uLU.getBrawler(piece_ID).usedLast = true; //the piece just acted upon is now "last used"
+			uLU.getBrawler(piece_ID).setUsedLast(true); //the piece just acted upon is now "last used"
 		}
 		else {
 			int uluLUb = uLU.getBlueLastUsed();
-			if(uluLUb != -1) uLU.getBrawler(uluLUb).usedLast = false; //whichever piece was used last is now available again
+			if(uluLUb != -1) uLU.getBrawler(uluLUb).setUsedLast(false); //whichever piece was used last is now available again
 			uLU.setBlueLastUsed(piece_ID);
-			uLU.getBrawler(piece_ID).usedLast = true; //the piece just acted upon is now "last used"
+			uLU.getBrawler(piece_ID).setUsedLast(true); //the piece just acted upon is now "last used"
 		}
 		return uLU;
 	}
 	
-} //end of gridBrawl class
+} //
