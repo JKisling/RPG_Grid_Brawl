@@ -17,25 +17,25 @@ public class Transfer extends GridBrawl {
 		if (game.isRedsTurn()){
 			for (int t = 0; t < bLength; t++) {
 				Brawler x = game.getBrawler(t);
-				if (x.isRed && x instanceof Warrior) walt = game.getBrawler(t);
-				if (x.isRed && x instanceof Cleric) clara = game.getBrawler(t);
-				if (x.isRed && x instanceof Mage) meg = game.getBrawler(t);
-				if (x.isRed && x instanceof Rogue) roy = game.getBrawler(t);
+				if (x.isRed() && x instanceof Warrior) walt = game.getBrawler(t);
+				if (x.isRed() && x instanceof Cleric) clara = game.getBrawler(t);
+				if (x.isRed() && x instanceof Mage) meg = game.getBrawler(t);
+				if (x.isRed() && x instanceof Rogue) roy = game.getBrawler(t);
 			}
 		}
 		else {
 			for (int t = 0; t < bLength; t++) {
 				Brawler y = game.getBrawler(t);
-				if (y.isBlue && y instanceof Warrior) walt = game.getBrawler(t);
-				if (y.isBlue && y instanceof Cleric) clara = game.getBrawler(t);
-				if (y.isBlue && y instanceof Mage) meg = game.getBrawler(t);
-				if (y.isBlue && y instanceof Rogue) roy = game.getBrawler(t);
+				if (y.isBlue() && y instanceof Warrior) walt = game.getBrawler(t);
+				if (y.isBlue() && y instanceof Cleric) clara = game.getBrawler(t);
+				if (y.isBlue() && y instanceof Mage) meg = game.getBrawler(t);
+				if (y.isBlue() && y instanceof Rogue) roy = game.getBrawler(t);
 			}
 		}
-		boolean wf = walt.handsFull;
-		boolean cf = clara.handsFull;
-		boolean mf = meg.handsFull;
-		boolean rf = roy.handsFull;
+		boolean wf = walt.isHandsFull();
+		boolean cf = clara.isHandsFull();
+		boolean mf = meg.isHandsFull();
+		boolean rf = roy.isHandsFull();
 		cases[0] =  (wf && !cf && los.calculate(game, walt, clara));
 		cases[1] =  (wf && !mf && los.calculate(game, walt, meg));
 		cases[2] =  (wf && !rf && los.calculate(game, walt, roy));
@@ -76,36 +76,26 @@ public class Transfer extends GridBrawl {
 		case 10:pitcher = roy;		catcher = clara;		break;
 		case 11:pitcher = roy;		catcher = meg;			break;
 		}
-		int ball = pitcher.possession;
-		game.getBrawler(pitcher.pieceID).possession = 0; 							// pitcher winds up
-		game.getBrawler(pitcher.pieceID).handsFull = false;						// and the pitch...
-		game.getBrawler(ball).column = game.getBrawler(catcher.pieceID).column;		// the ball travels
-		game.getBrawler(ball).row = game.getBrawler(catcher.pieceID).row;			// the ball travels
-		game.getBrawler(catcher.pieceID).handsFull = true;						// the ball thumps into the mitt
-		game.getBrawler(catcher.pieceID).possession = ball;						// steeerike!
+		int ball = pitcher.getPossession();
+		int ctchr = catcher.getPieceID();
+		game.getBrawler(pitcher.getPieceID()).setPossession(-1);						// pitcher winds up
+		game.getBrawler(pitcher.getPieceID()).setHandsFull(false);						// and the pitch...
+		game.getBrawler(ball).setColumn(game.getBrawler(ctchr).getColumn());// the ball travels
+		game.getBrawler(ball).setRow(game.getBrawler(ctchr).getRow());		// the ball travels
+		game.getBrawler(ctchr).setHandsFull(true);							// the ball thumps into the mitt
+		game.getBrawler(ctchr).setPossession(ball);							// steeerike!
 		
 		game.setSuccessfulTurn(true);
-		game = updateLastUsed(game, pitcher.pieceID);
+		game = updateLastUsed(game, pitcher.getPieceID());
 		if (game.isRedsTurn()) game.setRedCanPlace(true);
 		else game.setBlueCanPlace(true);
 		
 		interact.space();
 		interact.tellPlayer(7, 3, false); // "Transfer of Treasure was successful."
-		String result = "The " + BRWLRS[catcher.pieceID] + " has taken possession of the " + BRWLRS[ball] + ".";
+		String result = "The " + BRWLRS[ctchr] + " has taken possession of the " + BRWLRS[ball] + ".";
 		interact.tellPlayer(result, false);
 		interact.space();
 		
 		return game;
 	} // end of execute()	
 } // end of Transfer class
-
-
-
-
-
-
-
-
-
-
-
