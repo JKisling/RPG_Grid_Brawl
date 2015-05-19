@@ -23,3 +23,4 @@ interface Treasure {
 	final boolean moveable = false;
 }
 
+
