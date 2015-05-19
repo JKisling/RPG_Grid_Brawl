@@ -2,8 +2,8 @@ package rpgGridBrawl;
 
 // several methods in this class rely on the standard set of Brawlers, for the sake of convenience.
 public class Scoring {
-	private final AInode CRT;
-	private final ScoringProfile sProf;
+	private AInode CRT;
+	private ScoringProfile sProf;
 	private int[] brLocs; // an array of all the locations of all the brawlers
 	
 	public Scoring(AInode scoreMe, ScoringProfile sp) {
@@ -13,7 +13,16 @@ public class Scoring {
 		this.brLocs = new int[blength];
 		for (int a = 0; a < blength; a++) {
 			Brawler locateMe = scoreMe.getBrawler(a);
-			brLocs[a] = ((locateMe.floor * 100) + (locateMe.column * 10) + locateMe.row);
+			brLocs[a] = ((locateMe.getFloor() * 100) + (locateMe.getColumn() * 10) + locateMe.getRow());
+		}
+	}
+	
+	public void reset(String nodeString) {
+		this.CRT.setToString(nodeString);
+		int blength = CRT.getBrawlersLength();
+		for (int a = 0; a < blength; a++) {
+			Brawler locateMe = CRT.getBrawler(a);
+			this.brLocs[a] = ((locateMe.getFloor() * 100) + (locateMe.getColumn() * 10) + locateMe.getRow());
 		}
 	}
 	
@@ -123,20 +132,17 @@ public class Scoring {
 	
 	private boolean canMageGetToGhost(int mage_id) {
 		boolean empty, empty2, haunted, haunted2;
-		Brawler mage = this.CRT.getBrawler(mage_id);
-		int fM = mage.floor;
-		int cM = mage.column;
-		int rM = mage.row;
-		BoardSpace[][][] gameBoard = CRT.getBoard();
-		for (int c = 0; c < gameBoard[fM].length; c++) {
-			if (fM == 4 && c > 2) continue;
-			if (gameBoard[fM][c][rM] != null) {
-				empty = !gameBoard[fM][c][rM].isOccupied();
-				haunted = gameBoard[fM][c][rM].isGhostEffect();
-				empty2 = !gameBoard[fM][cM][c].isOccupied();
-				haunted2 = gameBoard[fM][cM][c].isGhostEffect();
-				if ((empty && haunted) || (empty2 && haunted2)) return true;
-			}
+		if (!CRT.getBrawler(mage_id).isOnBoard()) return false;
+		int fM = CRT.getBrawler(mage_id).getFloor();
+		int cM = CRT.getBrawler(mage_id).getColumn();
+		int rM = CRT.getBrawler(mage_id).getRow();
+		int ccrr = getCCRR(fM);
+		for (int x = 0; x < ccrr; x++) {
+			empty = !CRT.getLocation(fM, x, rM).isOccupied();
+			haunted = CRT.getLocation(fM, x, rM).isGhostEffect();
+			empty2 = !CRT.getLocation(fM, cM, x).isOccupied();
+			haunted2 = CRT.getLocation(fM, cM, x).isGhostEffect();
+			if ((empty && haunted) || (empty2 && haunted2)) return true;
 		}
 		return false;
 	}
@@ -154,20 +160,20 @@ public class Scoring {
 	public int[] characterStatus(int exmd) {
 		Brawler zed = CRT.getBrawler(exmd);
 		int[] status = new int[8];
-		if (zed.onBoard) {
+		if (zed.isOnBoard()) {
 			status[7] = 1;
-			status[0] = zed.floor;
-			status[1] = zed.level;
-			if (zed.glorified) status[2] = 1; 
-			if (zed.poweredUp) status[3] = 1;
-			if (zed.handsFull) {
+			status[0] = zed.getFloor();
+			status[1] = zed.getLevel();
+			if (zed.isGlorified()) status[2] = 1; 
+			if (zed.isPoweredUp()) status[3] = 1;
+			if (zed.isHandsFull()) {
 				status[4] = 1;
-				if (zed.isRed  && zed.possession - zed.pieceID == 20) status[5] = 1;
-				if (zed.isBlue && zed.possession - zed.pieceID == 16) status[5] = 1;
+				if (zed.isRed()  && zed.getPossession() - zed.getPieceID() == 20) status[5] = 1;
+				if (zed.isBlue() && zed.getPossession() - zed.getPieceID() == 16) status[5] = 1;
 			}
-			if (!zed.glorified && zed.floor == 5) status[6] = 1;
+			if (!zed.isGlorified() && zed.getFloor() == 5) status[6] = 1;
 		}
-		else if (zed.glorified) status[2] = 1;
+		else if (zed.isGlorified()) status[2] = 1;
 		return status;
 	}
 	
@@ -186,20 +192,20 @@ public class Scoring {
 			Brawler npc = CRT.getBrawler(n);
 			int[] charPlayground = CRT.buildPlayground(c);
 			if ((c != 2) && (c != 6)) { // you mages get out of here
-				if ((character.suit == npc.suit) && inPlayground(charPlayground, brLocs[n])) {
-					if (character.isRed) result[0]++;
-					else if (character.isBlue)result[1]++; 
+				if ((character.getSuit() == npc.getSuit()) && inPlayground(charPlayground, brLocs[n])) {
+					if (character.isRed()) result[0]++;
+					else if (character.isBlue())result[1]++; 
 				}
 			}
 			for (int t = 20; t <= 23; t++) {
 				Brawler treasure = CRT.getBrawler(t);
-				if ((character.suit == treasure.suit) && inPlayground(charPlayground, brLocs[t])) {
-					if (character.isRed) result[2]++;
-					else if (character.isBlue)result[3]++; 
+				if ((character.getSuit() == treasure.getSuit()) && inPlayground(charPlayground, brLocs[t])) {
+					if (character.isRed()) result[2]++;
+					else if (character.isBlue())result[3]++; 
 				}
-				else if ((character.suit != treasure.suit) && inPlayground(charPlayground, brLocs[t])) {
-					if (character.isRed) result[4]++;
-					else if (character.isBlue)result[5]++; 
+				else if ((character.getSuit() != treasure.getSuit()) && inPlayground(charPlayground, brLocs[t])) {
+					if (character.isRed()) result[4]++;
+					else if (character.isBlue())result[5]++; 
 				}
 			}	
 		}
@@ -216,21 +222,21 @@ public class Scoring {
 	private int charVSchar(int att, int vic) {
 		Brawler attacker = CRT.getBrawler(att);
 		Brawler victim = CRT.getBrawler(vic);
-		boolean colorMatch = ((attacker.isRed && victim.isRed) || (attacker.isBlue && victim.isBlue));
-		Brawler princess = CRT.getBrawler(16);
-		if (princess.floor == victim.floor) return 0; 
-		if (colorMatch || !attacker.onBoard || !victim.onBoard) return 0;
+		boolean colorMatch = ((attacker.isRed() && victim.isRed()) || (attacker.isBlue() && victim.isBlue()));
+		if (colorMatch || !attacker.isOnBoard() || !victim.isOnBoard()) return 0;
+		Brawler princess = CRT.getBrawler("Princess");
+		if (princess.getFloor() == victim.getFloor()) return 0; 
 		int[] attackerPlayground = CRT.buildPlayground(att);
 		if (inPlayground(attackerPlayground, brLocs[vic])) {
 			int battleSkill = 0;
 			if (attacker instanceof Warrior) battleSkill = 1;
-			int attackScore = attacker.level + attacker.swordBonus + battleSkill;
-			int defenseScore = victim.level + victim.shieldBonus + victim.clericDefenseBonus;
+			int attackScore = attacker.getLevel() + attacker.getSwordBonus() + battleSkill;
+			int defenseScore = victim.getLevel() + victim.getShieldBonus() + victim.getClericDefenseBonus();
 			if (attackScore > defenseScore) {
-				if (!victim.handsFull) return 1;
+				if (!victim.isHandsFull()) return 1;
 				else {
-					if (attacker.isRed && (victim.possession - att == 20)) return 3;
-					if (attacker.isBlue && (victim.possession - att == 16))return 3;
+					if (attacker.isRed() && (victim.getPossession() - att == 20)) return 3;
+					if (attacker.isBlue() && (victim.getPossession() - att == 16))return 3;
 					return 2;
 				}
 			}
@@ -317,10 +323,23 @@ public class Scoring {
 		return result;
 	}
 	
+	// test method
+	/*
 	private static void reportPG(int[] playground, int id) {
 		String output = "ID #" + id + " PG: ";
 		for (int g = 0; g < playground.length; g++) output += playground[g] + " ";
 		System.out.println(output);
+	}
+	*/
+	
+	private static int getCCRR(int floor) {
+		int result;
+		switch(floor) {
+		case 1: result = 5; break;
+		case 2: result = 4; break;
+		default: result = 3;
+		}
+		return result;
 	}
 	
 	private static boolean inPlayground(int[] playground, int kidLocation) {
@@ -338,13 +357,13 @@ public class Scoring {
 	private int[] merchantAvailable() {
 		int[] result = {0, 0};
 		Brawler merchant = CRT.getBrawler(19);
-		if (!merchant.onBoard) return result;
+		if (!merchant.isOnBoard()) return result;
 		for (int c = 0; c <= 7; c++) {
 			Brawler character = CRT.getBrawler(c);
-			if (!character.onBoard || character.possession != 23) continue;
+			if (!character.isOnBoard() || character.getPossession() != 23) continue;
 			if(inPlayground(CRT.getPlayground(c), brLocs[19])) {
-				if (character.isRed) result[0] = 1;
-				else if (character.isBlue) result[1] = 1; 
+				if (character.isRed()) result[0] = 1;
+				else if (character.isBlue()) result[1] = 1; 
 			}
 		}
 		return result;
@@ -363,18 +382,18 @@ public class Scoring {
 		int[] result = {0, 0, 0, 0};
 		for (int n = 8; n <= 11; n++) {
 			Brawler nemesis = CRT.getBrawler(n);
-			if (!nemesis.onBoard) continue;
+			if (!nemesis.isOnBoard()) continue;
 			int[] nPlayground = CRT.getPlayground(n);
 			for (int c = 0; c <= 7; c++) {
 				Brawler character = CRT.getBrawler(c);
-				if (!character.onBoard) continue; 
+				if (!character.isOnBoard()) continue; 
 				if (inPlayground(nPlayground, brLocs[c])) {
-					if (character.isRed) result[0]++;
-					else if (character.isBlue)result[1]++; 
+					if (character.isRed()) result[0]++;
+					else if (character.isBlue())result[1]++; 
 				}
-				if((nemesis.floor == character.floor) && (nemesis.suit == character.suit)) {
-					if (character.isRed) result[2]++;
-					else if (character.isBlue)result[3]++; 
+				if((nemesis.getFloor() == character.getFloor()) && (nemesis.getSuit() == character.getSuit())) {
+					if (character.isRed()) result[2]++;
+					else if (character.isBlue())result[3]++; 
 				}
 			}
 		}
@@ -395,7 +414,7 @@ public class Scoring {
 		// is rogue on the board and powered up and hands-free
 		for (int r = 3, z = 0; r <= 7; r += 4, z += 2) {
 			Brawler rogue = CRT.getBrawler(r);
-			if (!rogue.onBoard || !rogue.poweredUp || rogue.handsFull) {
+			if (!rogue.isOnBoard() || !rogue.isPoweredUp() || rogue.isHandsFull()) {
 				result[z] = 0;
 				result[z + 1] = 0;
 			}
@@ -403,10 +422,10 @@ public class Scoring {
 				for (int j = 0; j <= 15; j++) {
 					if (j == r || (j >= 8 && j <= 11)) continue;
 					Brawler victim = CRT.getBrawler(j);
-					boolean colorMatch = (rogue.isRed && victim.isRed) || (rogue.isBlue && victim.isBlue);
-					if (colorMatch || !victim.onBoard || !victim.handsFull) continue;
+					boolean colorMatch = (rogue.isRed() && victim.isRed()) || (rogue.isBlue() && victim.isBlue());
+					if (colorMatch || !victim.isOnBoard() || !victim.isHandsFull()) continue;
 					else if (los.AIcalculate(CRT, rogue, victim)) {
-						Brawler loot = CRT.getBrawler(victim.possession);
+						Brawler loot = CRT.getBrawler(victim.getPossession());
 						if (r == 3) { // Red Rogue
 							if (loot instanceof Diamond) result[1] = 1;
 							else result[0]++;
@@ -421,6 +440,9 @@ public class Scoring {
 		}
 	return result;
 	}
+	
+	public void setNode(String node) { CRT.setToString(node); }
+	
 	
 	// returns int[] with 2 values, the number of red/blue characters that are trapped by the Ghost
 	// assumes that characters are ID# 0-7, as in the standard set
