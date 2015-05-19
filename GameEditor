@@ -37,13 +37,13 @@ public class GameEditor extends GridBrawl {
 				interact.tellPlayer("Is this brawler glorified? (y/n): ", true);
 				glorified = interact.getYesOrNo();
 				if (glorified) {
-					game.getBrawler(c).glorified = true;
-					game.getBrawler(c).poweredUp = true;
-					game.getBrawler(c).level = 4;
+					game.getBrawler(c).setGlorified(true);
+					game.getBrawler(c).setPoweredUp(true);
+					game.getBrawler(c).setLevel(4);
 				}
-				else if (game.getBrawler(c).onBoard) success = ezCL(c);
+				else if (game.getBrawler(c).isOnBoard()) success = ezCL(c);
 				if (!success) return badInput;
-				if (CL >= 3) game.getBrawler(c).poweredUp = true;
+				if (CL >= 3) game.getBrawler(c).setPoweredUp(true);
 				
 			}
 			else if (game.getBrawler(c) instanceof Nemesis || game.getBrawler(c) instanceof NPC) {
@@ -53,7 +53,7 @@ public class GameEditor extends GridBrawl {
 			else if (game.getBrawler(c) instanceof Monster) {
 				success = ezPlace(c);
 				if (!success) return badInput;
-				if (game.getBrawler(c).onBoard) success = ezCL(c);
+				if (game.getBrawler(c).isOnBoard()) success = ezCL(c);
 				if (!success) return badInput;
 			}
 			else if (game.getBrawler(c) instanceof Treasure) {
@@ -65,9 +65,9 @@ public class GameEditor extends GridBrawl {
 					place = interact.getSpaceNumber();
 					if (place == -1) return badInput;
 					else if (place == 0) {
-						game.getBrawler(c).floor = 0;
-						game.getBrawler(c).column = 0;
-						game.getBrawler(c).row = 0;
+						game.getBrawler(c).setFloor(0);
+						game.getBrawler(c).setColumn(0);
+						game.getBrawler(c).setRow(0);
 						propah = true;
 					}
 					else { // place is assumed to be a real board space here
@@ -75,13 +75,13 @@ public class GameEditor extends GridBrawl {
 						if (game.getLocation(dstn[0], dstn[1], dstn[2]).isOccupied()) {
 							int occBy = game.getLocation(dstn[0], dstn[1], dstn[2]).getOccupiedBy();
 							Brawler meOccBy = game.getBrawler(occBy);
-							if ((meOccBy instanceof Character || meOccBy instanceof Monster) && !meOccBy.handsFull) {
-								game.getBrawler(c).onBoard = true;
-								game.getBrawler(c).floor = dstn[0];
-								game.getBrawler(c).column = dstn[1];
-								game.getBrawler(c).row = dstn[2];
-								game.getBrawler(occBy).handsFull = true;
-								game.getBrawler(occBy).possession = c;
+							if ((meOccBy instanceof Character || meOccBy instanceof Monster) && !meOccBy.isHandsFull()) {
+								game.getBrawler(c).setOnBoard(true);
+								game.getBrawler(c).setFloor(dstn[0]);
+								game.getBrawler(c).setColumn(dstn[1]);
+								game.getBrawler(c).setRow(dstn[2]);
+								game.getBrawler(occBy).setHandsFull(true);
+								game.getBrawler(occBy).setPossession(c);
 								game.getLocation(dstn[0], dstn[1], dstn[2]).setOccupied(true);
 								game.getLocation(dstn[0], dstn[1], dstn[2]).setOccupiedBy(c);
 								
@@ -94,10 +94,10 @@ public class GameEditor extends GridBrawl {
 							}
 						}
 						else { // place is not occupied, stick the treasure there and be done
-							game.getBrawler(c).onBoard = true;
-							game.getBrawler(c).floor = dstn[0];
-							game.getBrawler(c).column = dstn[1];
-							game.getBrawler(c).row = dstn[2];
+							game.getBrawler(c).setOnBoard(true);
+							game.getBrawler(c).setFloor(dstn[0]);
+							game.getBrawler(c).setColumn(dstn[1]);
+							game.getBrawler(c).setRow(dstn[2]);
 							game.getLocation(dstn[0], dstn[1], dstn[2]).setOccupied(true);
 							game.getLocation(dstn[0], dstn[1], dstn[2]).setOccupiedBy(c);
 						}
@@ -119,7 +119,7 @@ public class GameEditor extends GridBrawl {
 		interact.tellPlayer("Enter the CL of this brawler: ", true);
 		CL = interact.getIntOrNothing();
 		if (CL == 1 || CL == 2 || CL == 3 || CL == 4) {
-			game.getBrawler(bwlr).level = CL;
+			game.getBrawler(bwlr).setLevel(CL);
 			return true;
 		}
 		else return false;
@@ -143,10 +143,10 @@ public class GameEditor extends GridBrawl {
 			proper = true;
 		}
 		splitPlace = splitBoardSpace(place);
-		game.getBrawler(bwlr).onBoard = true;
-		game.getBrawler(bwlr).floor = splitPlace[0];
-		game.getBrawler(bwlr).column = splitPlace[1];
-		game.getBrawler(bwlr).row = splitPlace[2];
+		game.getBrawler(bwlr).setOnBoard(true);
+		game.getBrawler(bwlr).setFloor(splitPlace[0]);
+		game.getBrawler(bwlr).setColumn(splitPlace[1]);
+		game.getBrawler(bwlr).setRow(splitPlace[2]);
 		game.getLocation(x[0], x[1], x[2]).setOccupied(true);
 		game.getLocation(x[0], x[1], x[2]).setOccupiedBy(bwlr);
 		return true;
