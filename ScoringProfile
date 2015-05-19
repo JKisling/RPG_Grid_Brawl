@@ -82,5 +82,4 @@ public class ScoringProfile {
 	public int getB(int index) {
 		return this.brawl[index];
 	}
-	
-}
+} // end of ScoringProfile class
