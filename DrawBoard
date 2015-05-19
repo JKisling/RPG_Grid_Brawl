@@ -63,11 +63,11 @@ class DrawBoard extends JPanel implements ActionListener {
 	
 	private void drawCharacterSketch(GameData GM, Graphics drawMe, int pieceID, int xOrigin, int yOrigin, int sketchScale, int squareScale) {
 		Brawler zeke = this.game.getBrawler(pieceID);
-		if (zeke.isRed) drawMe.setColor(Color.RED);
+		if (zeke.isRed()) drawMe.setColor(Color.RED);
 		else drawMe.setColor(Color.BLUE);
 		int getSketch = -1;
 		if (zeke instanceof Warrior) {
-			switch(zeke.level){
+			switch(zeke.getLevel()){
 			case 1: getSketch = 0;	break;
 			case 2: getSketch = 4;	break;
 			case 3: getSketch = 24;	break;
@@ -75,7 +75,7 @@ class DrawBoard extends JPanel implements ActionListener {
 			}
 		}
 		else if (zeke instanceof Cleric) {
-			switch(zeke.level){
+			switch(zeke.getLevel()){
 			case 1: getSketch = 1;	break;
 			case 2: getSketch = 5;	break;
 			case 3: getSketch = 25;	break;
@@ -83,7 +83,7 @@ class DrawBoard extends JPanel implements ActionListener {
 			}
 		}
 		else if (zeke instanceof Mage) {
-			switch(zeke.level){
+			switch(zeke.getLevel()){
 			case 1: getSketch = 2;	break;
 			case 2: getSketch = 6;	break;
 			case 3: getSketch = 26;	break;
@@ -91,7 +91,7 @@ class DrawBoard extends JPanel implements ActionListener {
 			}
 		}
 		else if (zeke instanceof Rogue) {
-			switch(zeke.level){
+			switch(zeke.getLevel()){
 			case 1: getSketch = 3;	break;
 			case 2: getSketch = 7;	break;
 			case 3: getSketch = 27;	break;
@@ -109,18 +109,18 @@ class DrawBoard extends JPanel implements ActionListener {
 		}
 		drawMe.setFont(levelFont);
 		drawMe.setColor(Color.WHITE);
-		if (zeke.glorified) {
+		if (zeke.isGlorified()) {
 			drawMe.setFont(glorified);
 			clPlacement[0] -= 5;
 			clPlacement[1] += 10;
 			
 		}
-		String level = "" + zeke.level;
+		String level = "" + zeke.getLevel();
 		drawMe.drawString(level, (xOrigin + clPlacement[0]), (yOrigin + clPlacement[1]));
 		
 		// if zeke has a treasure, draw that
-		if (zeke.handsFull){
-			Brawler loot = GM.getBrawler(zeke.possession);
+		if (zeke.isHandsFull()){
+			Brawler loot = GM.getBrawler(zeke.getPossession());
 			int sketchnum = -1;
 			if (loot instanceof Sword)   sketchnum = 32;
 			if (loot instanceof Shield)  sketchnum = 33;
@@ -148,16 +148,18 @@ class DrawBoard extends JPanel implements ActionListener {
 			int[] ydrawS = getSketchLineCoordinates(xOrigin, yOrigin, line, sketchScale, squareScale, false);
 			drawMe.fillPolygon(xdrawS, ydrawS, 4);	
 		}
-		if (pieceID > 23) pieceID -= 24;
-		Brawler billy = game.getBrawler(pieceID);
+		int correctMonster = pieceID;
+		if (correctMonster > 24) correctMonster -= 24;
+		Brawler billy = game.getBrawler(correctMonster);
 		int[] clPlacement = sketch.getclPlacement();
 		drawMe.setFont(levelFont);
 		drawMe.setColor(Color.BLACK);
-		String level = "" + billy.level;
+		String level = "" + billy.getLevel();
 		drawMe.drawString(level, (xOrigin + clPlacement[0]), (yOrigin + clPlacement[1]));
 		
-		if (billy.handsFull){
-			Brawler loot = game.getBrawler(billy.possession);
+		if (billy.isHandsFull()){
+			System.out.println("Billy #" + billy.pieceID + " is hands full");
+			Brawler loot = game.getBrawler(billy.getPossession());
 			int sketchnum = -1;
 			if (loot instanceof Sword)   sketchnum = 32;
 			if (loot instanceof Shield)  sketchnum = 33;
@@ -189,7 +191,6 @@ class DrawBoard extends JPanel implements ActionListener {
 			int[] ydrawS = getSketchLineCoordinates(xOrigin, yOrigin, line, sketchScale, squareScale, false);
 			drawMe.fillPolygon(xdrawS, ydrawS, 4);	
 		}
-	
 	}
 	
 	private static int[] getBoardDimensions(int bl) {
@@ -255,11 +256,8 @@ class DrawBoard extends JPanel implements ActionListener {
 		String[] BN = new String[crtGBN.getAllBrawlers().length];
 		for (int x = 0; x < BN.length; x++) {
 			Brawler xyz = crtGBN.getBrawler(x);
-			if (xyz instanceof Character || xyz instanceof Monster) {
-				String CL = xyz.level + "";
-				BN[x] = xyz.letterName + CL;
-			}
-			else BN[x] = xyz.letterName;
+			if (xyz instanceof Character || xyz instanceof Monster) BN[x] = (xyz.getLetterName() + xyz.getLevel());
+			else BN[x] = xyz.getLetterName();
 		}
 		return BN;
 	}
@@ -322,23 +320,19 @@ class DrawBoard extends JPanel implements ActionListener {
 				drawMe.drawString(sspcNo, xdraw[0] + 2, ydraw[3] - 5);
 		// if there is a piece on this space, draw it
 				boolean occupado = false;
-				try {
-					occupado = this.game.getLocation(BL, c, r).isOccupied();
-				}
-				catch(NullPointerException ex) {
-					occupado = false;
-				}
+				try { occupado = this.game.getLocation(BL, c, r).isOccupied(); }
+				catch(NullPointerException ex) { occupado = false; }
 				if (occupado) {
 					int BB = this.game.getLocation(BL, c, r).getOccupiedBy();
 					try {
 						Brawler jimbo = this.game.getBrawler(BB);
 						if (jimbo instanceof Monster) {
-							int bigOrSmall = jimbo.pieceID;
-							if (jimbo.level > 2) bigOrSmall += 24;
+							int bigOrSmall = jimbo.getPieceID();
+							if (jimbo.getLevel() > 2) bigOrSmall += 24;
 							drawMonsterSketch(this.game, drawMe, bigOrSmall, xdraw[0], ydraw[0], sketchScale, squareScale);
 						}
-						else if (jimbo instanceof Character) drawCharacterSketch(this.game, drawMe, jimbo.pieceID, xdraw[0], ydraw[0], sketchScale, squareScale);
-						else drawSketch(drawMe, jimbo.pieceID, xdraw[0], ydraw[0], sketchScale, squareScale);
+						else if (jimbo instanceof Character) drawCharacterSketch(this.game, drawMe, jimbo.getPieceID(), xdraw[0], ydraw[0], sketchScale, squareScale);
+						else drawSketch(drawMe, jimbo.getPieceID(), xdraw[0], ydraw[0], sketchScale, squareScale);
 					}
 					catch (ArrayIndexOutOfBoundsException ex) {}
 				}
@@ -376,7 +370,7 @@ class DrawBoard extends JPanel implements ActionListener {
 			}
 		} // end of for loop that draws all of the spaces
 		
-		if (BL == 4) { // draw the ascension space
+		if (BL == 4) { // draw the glorification space
 			int[] xdrawA = getSquareCoordinates(0, 0, squareScale, 0, true, false);
 			int[] ydrawA = getSquareCoordinates(0, 0, squareScale, 0, false, true);
 			drawMe.setColor(Color.YELLOW);
@@ -389,7 +383,7 @@ class DrawBoard extends JPanel implements ActionListener {
 			ascender = this.game.getLocation(5, 0, 0).getOccupiedBy();
 			if (ascender != -1) {
 				Brawler jimbo = this.game.getBrawler(ascender);
-				drawCharacterSketch(this.game, drawMe, jimbo.pieceID, xdrawA[0], ydrawA[0], sketchScale, squareScale);
+				drawCharacterSketch(this.game, drawMe, jimbo.getPieceID(), xdrawA[0], ydrawA[0], sketchScale, squareScale);
 			}
 		}
 		// draw the pool of off-board brawlers
@@ -405,8 +399,8 @@ class DrawBoard extends JPanel implements ActionListener {
 				int ydrawB = 385 + (70 * i);
 				String LNo = this.brwlrs[k];
 				Brawler jimbo = this.game.getBrawler(k);
-				if (!jimbo.onBoard) {
-					if (jimbo.glorified) drawMe.setFont(glorified);
+				if (!jimbo.isOnBoard()) {
+					if (jimbo.isGlorified()) drawMe.setFont(glorified);
 					else drawMe.setFont(brawlerFont);
 					drawMe.setColor(setCorrectColor(jimbo));
 					drawMe.drawString(LNo, xdrawB, ydrawB);
@@ -418,8 +412,8 @@ class DrawBoard extends JPanel implements ActionListener {
 	
 	private Color setCorrectColor(Brawler jimbo) {
 		Color drawThis = Color.BLACK;
-		if (jimbo.isRed) drawThis = Color.RED;
-		if (jimbo.isBlue) drawThis = Color.BLUE;
+		if (jimbo.isRed()) drawThis = Color.RED;
+		if (jimbo.isBlue()) drawThis = Color.BLUE;
 		if (jimbo instanceof Nemesis) drawThis = nemesisColor;
 		if (jimbo instanceof Monster) drawThis = monsterColor;
 		if (jimbo instanceof NPC) drawThis = npcColor;
