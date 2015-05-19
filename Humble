@@ -13,7 +13,7 @@ class Humble extends GridBrawl {
 		int hSelect = 0;
 		for (int j = 0; j < crtGame.getAllBrawlers().length; j++) {
 			Brawler jDog = crtGame.getBrawler(j);
-			boolean rightColor = (jDog.isRed && crtGame.isRedsTurn()) || (jDog.isBlue && !crtGame.isRedsTurn());
+			boolean rightColor = (jDog.isRed() && crtGame.isRedsTurn()) || (jDog.isBlue() && !crtGame.isRedsTurn());
 			if (rightColor && jDog instanceof Warrior) warrior = crtGame.getBrawler(j);
 			if (rightColor && jDog instanceof Cleric) cleric = crtGame.getBrawler(j);
 			if (rightColor && jDog instanceof Mage) mage = crtGame.getBrawler(j);
@@ -22,16 +22,16 @@ class Humble extends GridBrawl {
 		interact.tellPlayer(5, 0, false); // "You may humble your Cleric before one of your other characters."
 		interact.tellPlayer(5, 1, false); // "Please select from among the following options:"
 		interact.space();
-		String clericResult = "reduced to CL " + (cleric.level - 1);
-		if (cleric.level == 1) clericResult = "removed";
+		String clericResult = "reduced to CL " + (cleric.getLevel() - 1);
+		if (cleric.getLevel() == 1) clericResult = "removed";
 		boolean[] choices = new boolean[3];
-		if (warrior.onBoard && warrior.level < 4) choices[0] = true;
-		if (mage.onBoard && mage.level < 4) choices[1] = true;
-		if (rogue.onBoard && rogue.level < 4) choices[2] = true;
+		if (warrior.isOnBoard() && warrior.getLevel() < 4) choices[0] = true;
+		if (mage.isOnBoard() && mage.getLevel() < 4) choices[1] = true;
+		if (rogue.isOnBoard() && rogue.getLevel() < 4) choices[2] = true;
 		String report = "";
-		if (choices[0]) report += ("1. Your Cleric will be " + clericResult + " and your Warrior will be raised to CL " + (warrior.level + 1) + ".\n");
-		if (choices[1]) report += ("2. Your Cleric will be " + clericResult + " and your Mage will be raised to CL " + (mage.level + 1) + ".\n");
-		if (choices[2]) report += ("3. Your Cleric will be " + clericResult + " and your Rogue will be raised to CL " + (rogue.level + 1) + ".\n");
+		if (choices[0]) report += ("1. Your Cleric will be " + clericResult + " and your Warrior will be raised to CL " + (warrior.getLevel() + 1) + ".\n");
+		if (choices[1]) report += ("2. Your Cleric will be " + clericResult + " and your Mage will be raised to CL " + (mage.getLevel() + 1) + ".\n");
+		if (choices[2]) report += ("3. Your Cleric will be " + clericResult + " and your Rogue will be raised to CL " + (rogue.getLevel() + 1) + ".\n");
 		report += ("4. Return to main menu\n");
 		report +=("Enter your selection: ");
 		interact.space();
@@ -58,12 +58,12 @@ class Humble extends GridBrawl {
 			return crtGame;
 		}
 		// at this point, the humbling has been selected and successfully confirmed
-		int cler = cleric.pieceID;
-		int recipient = recipientB.pieceID;
+		int cler = cleric.getPieceID();
+		int recipient = recipientB.getPieceID();
 		
-		if (crtGame.getBrawler(cler).level == 1) crtGame = clearSpace(crtGame, cler);
-		else crtGame.getBrawler(cler).level--;
-		crtGame.getBrawler(recipient).level++;
+		if (crtGame.getBrawler(cler).getLevel() == 1) crtGame = clearSpace(crtGame, cler);
+		else crtGame.getBrawler(cler).setLevel(crtGame.getBrawler(cler).getLevel() - 1);
+		crtGame.getBrawler(recipient).setLevel(crtGame.getBrawler(cler).getLevel() + 1);
 		if (crtGame.isRedsTurn()) crtGame.setRedCanPlace(true);
 		else crtGame.setBlueCanPlace(true);
 		crtGame = updateLastUsed(crtGame, cler);
