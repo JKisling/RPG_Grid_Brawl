@@ -41,7 +41,7 @@ class Interaction extends GridBrawl {
 		this.messages[3][3]  = "Nemeses must be placed on board level 4.";
 		this.messages[3][4]  = "Enter 3-digit number of space on which to place this piece or enter anything else to return to main menu:";
 		this.messages[3][5]  = "That is not a valid board space.";
-		this.messages[3][6]  = "You cannot place a piece on the Ascension space.";
+		this.messages[3][6]  = "You cannot place a Brawler on the Glorification space.";
 		this.messages[3][7]  = "You may only place Characters on board level 1.";
 		this.messages[3][8]  = "You may only place Nemeses on board level 4.";
 		this.messages[4][0]  = "Enter the number of your selection or anything else to return to main menu: ";
@@ -105,52 +105,52 @@ class Interaction extends GridBrawl {
 			Brawler Jimbo = crt.getBrawler(chars);
 			int spacer = 0;
 			
-			if (crt.getRedLastUsed() == Jimbo.pieceID || crt.getBlueLastUsed() == Jimbo.pieceID) {
+			if (crt.getRedLastUsed() == Jimbo.getPieceID() || crt.getBlueLastUsed() == Jimbo.getPieceID()) {
 				report += "++";
 				spacer -= 2;
 			}
 			
-			if (Jimbo.glorified) {
+			if (Jimbo.isGlorified()) {
 				report += "^";
 				spacer--;
 			}
 			report += BRWLRS[chars] + ":";
-			if (Jimbo.poweredUp) {
+			if (Jimbo.isPoweredUp()) {
 				report += "*";
 				spacer--;
 			}
-			if (!Jimbo.onBoard) {
+			if (!Jimbo.isOnBoard()) {
 				for (spacer += (22 - BRWLRS[chars].length()); spacer >= 0; spacer--) report += " ";
 				report += "off board";
 			}
 			else {
 				for (spacer += (17 - BRWLRS[chars].length()); spacer >= 0; spacer--) report += " ";
-				report += ("CL" + Jimbo.level + "  on space# " + Jimbo.floor + Jimbo.column + Jimbo.row);
+				report += ("CL" + Jimbo.getLevel() + "  on space# " + Jimbo.getFloor() + Jimbo.getColumn() + Jimbo.getRow());
 			}
-			if (Jimbo.handsFull) report += ("\t(" + BRWLRS[Jimbo.possession] + ")");
+			if (Jimbo.isHandsFull()) report += ("\t(" + BRWLRS[Jimbo.getPossession()] + ")");
 			report += "\n";
 		}
 		for (int therest = 8; therest < 24; therest++) {
 			Brawler xyz = crt.getBrawler(therest);
 			int spacer = 0;
 			// this next if block was commented out, I am putting it back in to see if it works better now
-			if ((crt.getRedLastUsed() == xyz.pieceID) || (crt.getBlueLastUsed() == xyz.pieceID)){
+			if ((crt.getRedLastUsed() == xyz.getPieceID()) || (crt.getBlueLastUsed() == xyz.getPieceID())){
 				report += "++";
 				spacer -= 2;
 			}
 			
 			report += BRWLRS[therest] + ":";
-			if (!xyz.onBoard) {
+			if (!xyz.isOnBoard()) {
 				for (spacer += (22 - BRWLRS[therest].length()); spacer >= 0; spacer--) report += " ";
 				report += "off board";
 			}
-			else if (therest < 16 && xyz.onBoard){
+			else if (therest < 16 && xyz.isOnBoard()){
 				for (spacer += (17 - BRWLRS[therest].length()); spacer >= 0; spacer--) report += " ";
-				report += ("CL" + xyz.level + "  on space# " + xyz.floor + xyz.column + xyz.row);
+				report += ("CL" + xyz.getLevel() + "  on space# " + xyz.getFloor() + xyz.getColumn() + xyz.getRow());
 			}
 			else {
 				for (spacer += (22 - BRWLRS[therest].length()); spacer >= 0; spacer--) report += " ";
-				report += ("on space# " + xyz.floor + xyz.column + xyz.row);
+				report += ("on space# " + xyz.getFloor() + xyz.getColumn() + xyz.getRow());
 			}
 			report += "\n";
 		}
@@ -300,9 +300,8 @@ class Interaction extends GridBrawl {
 			return space;
 		}
 		if(occupado) {
-			// I'm taking a chance on a recursive call here, this might wreck everything.
 			this.tellPlayer(this.msgBuild(crt, 8, occupier), false); // "That space is already occupied by the " + BRWLRS[occupier] + "."
-			spacex = getUnoccupiedSpaceNumber(crt);	
+			spacex = getUnoccupiedSpaceNumber(crt);	// recursion...fancy!
 		}
 		return spacex;
 	}
@@ -361,17 +360,17 @@ class Interaction extends GridBrawl {
 		case 14:t = "Please select a new destination for the " + BRWLRS[passIn] + ".";					break; // Move.execute()
 		case 15:t = "The destination space is occupied by the " + BRWLRS[passIn] + ".";					break; // Move.execute()
 		case 16:t = "The Abyss has swallowed up the " + BRWLRS[passIn] + "...";							break; // Move.finishMoveTurn()
-		case 17:t = "You are about to perform the ritual of Ascension on the " + BRWLRS[passIn] + "!";	break; // Ascension.executeAscension()
-		case 18:t = "The " + BRWLRS[passIn] + " has left the board!";									break; // Ascension.executeAscension()
-		case 19:t = "The " + BRWLRS[passIn] + " has returned to the pool.";								break; // Ascension.executeAscension()
-		case 20:t = "You may sacrifice the " + BRWLRS[passIn] + ".";										break; // Ascension.executeSacrifice()
+		case 17:t = "You are about to perform the ritual of Glorification on the " + BRWLRS[passIn] + "!";	break; // Glorification.executeAscension()
+		case 18:t = "The " + BRWLRS[passIn] + " has left the board!";									break; // Glorification.executeAscension()
+		case 19:t = "The " + BRWLRS[passIn] + " has returned to the pool.";								break; // Glorification.executeAscension()
+		case 20:t = "You may sacrifice the " + BRWLRS[passIn] + ".";										break; // Glorification.executeSacrifice()
 		case 21:t = "The " + BRWLRS[passIn] + " has been bumped off of the board!";						break; // Move.performBumpDwns() & Ascension.executeSacrifice
-		case 22:t = "You have selected to perform the ritual of sword sacrifice against the " + BRWLRS[passIn]; // Ascension.executeSacrifice()
+		case 22:t = "You have selected to perform the ritual of sword sacrifice against the " + BRWLRS[passIn]; // Glorification.executeSacrifice()
 			break; 																								   
-		case 23:t = "You have selected to perform the ritual of shield sacrifice on the " + BRWLRS[passIn];	   // Ascension.executeSacrifice()
+		case 23:t = "You have selected to perform the ritual of shield sacrifice on the " + BRWLRS[passIn];	   // Glorification.executeSacrifice()
 			break; 																								   
-		case 24:t = "You have selected to bestow the magic ring on the " + BRWLRS[passIn];				break; // Ascension.executeSacrifice()
-		case 25:t= "You have selected to perform the ritual of diamond sacrifice on the " + BRWLRS[passIn];    // Ascension.executeSacrifice()
+		case 24:t = "You have selected to bestow the magic ring on the " + BRWLRS[passIn];				break; // Glorification.executeSacrifice()
+		case 25:t= "You have selected to perform the ritual of diamond sacrifice on the " + BRWLRS[passIn];    // Glorification.executeSacrifice()
 			break; 																								   
 		case 26:t = "You have selected to have the Dragon breathe fire on the " + BRWLRS[passIn] + ".";	break; // Fireball.burn()
 		case 27:t = "The charred husk of the " + BRWLRS[passIn] + " has been tossed off of the board!";	break; // Fireball.burn()
@@ -392,11 +391,11 @@ class Interaction extends GridBrawl {
 		case 39:t = "Game " + crt.gameName + " is over.  Red wins down!  Congratulations, " + crt.redPlayerName + "!";   // GridBrawl.endGame()
 			break;
 		case 40:t = "Game " + crt.gameName + " is over.  Blue wins down!  Congratulations, " + crt.bluePlayerName + "!"; // GridBrawl.endGame()
-		case 41:t = "The " + BRWLRS[passIn] + " gains no C-level because the Leper is on the same board level."; break;	// Move.finishMoveTurn()
+		case 41:t = "The " + BRWLRS[passIn] + " gains no level because the Leper is on the same floor."; break;			// Move.finishMoveTurn()
 		case 42:t = "The Vampire has sucked an additional character level out of the " + BRWLRS[passIn] + "!"; break;	// Move.finishMoveTurn()
 		case 43:t = "The Vampire bites, and the bloodless husk of the " + BRWLRS[passIn] + " is tossed off of the board!"; // Move.finishMoveTurn()
 		case 44:t = "The " + BRWLRS[passIn] + " has \"cured\" the leper, and will gain a Character Level!"; break;		// Move.finishMoveTurn()
-		case 45:t = "The " + BRWLRS[passIn] + " is now CL " + crt.getBrawler(passIn).level;	break;						// Move.finishMoveTurn()
+		case 45:t = "The " + BRWLRS[passIn] + " is now level " + crt.getBrawler(passIn).getLevel();	break;						// Move.finishMoveTurn()
 		case 46:t = "The " + BRWLRS[passIn] + " has \"cured\" the Leper, and is rewarded with the Shield!"; 	break;	// Move.finishMoveTurn()
 		case 47:t = "The " + BRWLRS[passIn] + " has \"cured\" the Leper, and receives humble thanks.";	break;			// Move.finishMoveTurn()
 		case 48:t = "The " + BRWLRS[passIn] + " has been weakened by attacking the Leper.";				break;			// Move.finishMoveTurn()
@@ -422,8 +421,8 @@ class Interaction extends GridBrawl {
 		if (oA[1] && !oA[2]) System.out.println("1. Your only option is to place a piece on the board this turn.");
 		if (oA[1] &&  oA[2]) System.out.println("1. Place a piece on the board.");
 		if (oA[2]) System.out.println("2. Move a piece on the board.");
-		if (oA[3]) System.out.println("3. Sacrifice your Treasure to the ascension space.");
-		if (oA[4]) System.out.println("4. Perform the ritual of Ascension.");
+		if (oA[3]) System.out.println("3. Sacrifice your Treasure to the glorification space.");
+		if (oA[4]) System.out.println("4. Perform the ritual of Glorification.");
 		if (oA[5]) System.out.println("5. Transfer a Treasure from one of your Characters to another.");
 		if (oA[6]) System.out.println("6. Spend the Diamond.");
 		if (oA[7]) System.out.println("7. Humble your Cleric before one of your other Characters.");
@@ -492,7 +491,8 @@ class Interaction extends GridBrawl {
 		return pSelect;
 	}
 	
-	// The logic from this method, or some of it should move into the Place class.
+	// The logic from this method, or some of it, should perhaps move into the Place class.
+	// Also, try to incorporate the new GridBrawl.isLegitSpace() logic into this
 	public int placeGetSpace(GameData crtGame, int pSelect) {
 		int[] sSelectsplit = new int[3];
 		int sSelect = 0;
@@ -531,7 +531,7 @@ class Interaction extends GridBrawl {
 					validChoice = false;
 				} 
 				else if (fSelect == 5) {
-					this.tellPlayer(3, 6, false); // "You cannot place a piece on the Ascension space."
+					this.tellPlayer(3, 6, false); // "You cannot place a piece on the Glorification space."
 					validChoice = false;
 				}
 				else if (pSelect <= 7 && fSelect > 1) {
@@ -587,16 +587,16 @@ class Interaction extends GridBrawl {
 		String prefix = "";
 		Brawler ourShooter = crt.getBrawler(shooter);
 		if (ourShooter instanceof Dragon) prefix = "The Dragon breathes fire on the ";
-		else if (ourShooter.isRed) prefix = "The Red Mage hurls a fireball at the";
+		else if (ourShooter.isRed()) prefix = "The Red Mage hurls a fireball at the";
 		else prefix = "The Blue Mage hurls an ice ball at the";
 		for (int df = 0; df < targets.length; df++) {
 			if (targets[df] != -1) {
 				Brawler targ = crt.getBrawler(targets[df]);
-				boolean bumpable = ((targ instanceof Character || targ instanceof Monster) && targ.level > 1 && targ.floor > 1);
+				boolean bumpable = ((targ instanceof Character || targ instanceof Monster) && targ.getLevel() > 1 && targ.getFloor() > 1);
 				String result = "";
 				if (bumpable) result = "which will bump it down.";
 				else result = "which will remove it from the board.";
-				report += numSay + ". " + prefix + BRWLRS[targ.pieceID]+ ", " + result + "\n"; 
+				report += numSay + ". " + prefix + BRWLRS[targ.getPieceID()]+ ", " + result + "\n"; 
 				numSay++;
 			}
 		}
@@ -613,18 +613,18 @@ class Interaction extends GridBrawl {
 	
 	public String reportOnPickpocketOptions(GameData PPO, int[] targets) {
 		Brawler victim = PPO.getBrawler(targets[0]);
-		String report = "1. You may have your Rogue steal the " + BRWLRS[victim.possession] + " from the " + BRWLRS[victim.pieceID] + ".\n"; 
+		String report = "1. You may have your Rogue steal the " + BRWLRS[victim.getPossession()] + " from the " + BRWLRS[victim.getPieceID()] + ".\n"; 
 		if (targets[1] != -1) {
 			victim = PPO.getBrawler(targets[1]);
-			report += "2. You may have your Rogue steal the " + BRWLRS[victim.possession] + " from the " + BRWLRS[victim.pieceID] + ".\n";
+			report += "2. You may have your Rogue steal the " + BRWLRS[victim.getPossession()] + " from the " + BRWLRS[victim.getPieceID()] + ".\n";
 		}
 		if (targets[2] != -1) {
 			victim = PPO.getBrawler(targets[1]);
-			report += "3. You may have your Rogue steal the " + BRWLRS[victim.possession] + " from the " + BRWLRS[victim.pieceID] + ".\n";
+			report += "3. You may have your Rogue steal the " + BRWLRS[victim.getPossession()] + " from the " + BRWLRS[victim.getPieceID()] + ".\n";
 		}
 		if (targets[3] != -1) {
 			victim = PPO.getBrawler(targets[1]);
-			report += "4. You may have your Rogue steal the " + BRWLRS[victim.possession] + " from the " + BRWLRS[victim.pieceID] + ".\n";
+			report += "4. You may have your Rogue steal the " + BRWLRS[victim.getPossession()] + " from the " + BRWLRS[victim.getPieceID()] + ".\n";
 		}
 		report += "Enter the number of your selection: ";
 		return report;
@@ -669,6 +669,7 @@ class Interaction extends GridBrawl {
 		return report;
 	}
 	
+	// FIX THIS, invest has gone away
 	public String reportOnSpendOptions1(boolean[] opts) {
 		String report = "";
 		if (opts[0]) report += "1. Bribe any one brawler within line of sight to move to any unoccupied space.\n";
@@ -701,14 +702,14 @@ class Interaction extends GridBrawl {
 	public String reportOnTransferOptions(boolean[] cases, Brawler walt, Brawler clara, Brawler meg, Brawler roy) {
 		// 12 scenarios: WC, WM, WR, CM, CR, MR & the opposites CW, MW, RW, MC, RC, RM
 		String report = "";
-		int wt = walt.possession;
-		int ct = clara.possession;
-		int mt = meg.possession;
-		int rt = roy.possession;
-		int wp = walt.pieceID;
-		int cp = clara.pieceID;
-		int mp = meg.pieceID;
-		int rp = roy.pieceID;
+		int wt = walt.getPossession();
+		int ct = clara.getPossession();
+		int mt = meg.getPossession();
+		int rt = roy.getPossession();
+		int wp = walt.getPieceID();
+		int cp = clara.getPieceID();
+		int mp = meg.getPieceID();
+		int rp = roy.getPieceID();
 		int[] blr = new int[3];
 		for (int c = 0; c < cases.length; c++) {
 			if (cases[c]) {
