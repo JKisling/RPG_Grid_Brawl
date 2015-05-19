@@ -11,29 +11,29 @@ public class LineOfSight extends GridBrawl {
 		boolean answer = false;
 		boolean backslash = false;
 		int distance = 0;
-		if (aaa.floor != bbb.floor || aaa.pieceID == bbb.pieceID) return false;
-		if (aaa.column == bbb.column) {
-			distance = Math.abs(aaa.row - bbb.row);
+		if (aaa.getFloor() != bbb.getFloor() || aaa.getPieceID() == bbb.getPieceID()) return false;
+		if (aaa.getColumn() == bbb.getColumn()) {
+			distance = Math.abs(aaa.getRow() - bbb.getRow());
 			if (distance == 1) return true; // they are adjacent in the same column
 			answer = checkRow(game, aaa, bbb, distance);
 		}
-		else if (aaa.row == bbb.row) {
-			distance = Math.abs(aaa.column - bbb.column);
+		else if (aaa.getRow() == bbb.getRow()) {
+			distance = Math.abs(aaa.getColumn() - bbb.getColumn());
 			if (distance == 1) return true; // they are adjacent in the same row
 			answer = checkColumn(game, aaa, bbb, distance);
 		}
-		else if ((aaa.row + aaa.column) == (bbb.row + bbb.column)) {
-			distance = Math.abs(aaa.column - bbb.column);
+		else if ((aaa.getRow() + aaa.getColumn()) == (bbb.getRow() + bbb.getColumn())) {
+			distance = Math.abs(aaa.getColumn() - bbb.getColumn());
 			if (distance == 1) return true; // they are adjacent in the same forward diagonal
 			answer = checkForwardDiagonal(game, aaa, bbb, distance);
 		}
 		else {
 			for (int j = 1; j <= 4; j++) { // this is how we find brawlers on the back slash diagonal
-				if (aaa.row - j == bbb.row && aaa.column - j == bbb.column) backslash = true;
-				else if ((aaa.row + j == bbb.row) && (aaa.column + j == bbb.column)) backslash = true;
+				if (aaa.getRow() - j == bbb.getRow() && aaa.getColumn() - j == bbb.getColumn()) backslash = true;
+				else if ((aaa.getRow() + j == bbb.getRow()) && (aaa.getColumn() + j == bbb.getColumn())) backslash = true;
 			}
 			if (backslash) {
-				distance = Math.abs(aaa.column - bbb.column);
+				distance = Math.abs(aaa.getColumn() - bbb.getColumn());
 				if (distance == 1) return true; // they are adjacent in the same back diagonal
 				answer = checkBackSlash(game, aaa, bbb, distance);
 			}
@@ -43,10 +43,10 @@ public class LineOfSight extends GridBrawl {
 	
 	private static boolean checkBackSlash(GameData crt, Brawler aaa, Brawler bbb, int distance) {
 		Brawler upperLeft;
-		if (aaa.column < bbb.column) upperLeft = aaa;
+		if (aaa.getColumn() < bbb.getColumn()) upperLeft = aaa;
 		else upperLeft = bbb;
 		for (int bd = 1; bd < distance; bd++) {
-			boolean occupado = (crt.getLocation(upperLeft.floor, upperLeft.column + bd, upperLeft.row + bd).isOccupied());
+			boolean occupado = (crt.getLocation(upperLeft.getFloor(), upperLeft.getColumn() + bd, upperLeft.getRow() + bd).isOccupied());
 			if (occupado) return false; // board space in between aaa and bbb is occupied by a different piece, therefore no LOS
 		}
 		return true;
@@ -54,7 +54,7 @@ public class LineOfSight extends GridBrawl {
 	
 	private static boolean checkColumn(GameData crt, Brawler aaa, Brawler bbb, int distance) {
 		Brawler left;
-		if (aaa.column < bbb.column) left = aaa;
+		if (aaa.getColumn() < bbb.getColumn()) left = aaa;
 		else left = bbb;
 		for (int c = 1; c < distance; c++) {
 			
@@ -62,7 +62,7 @@ public class LineOfSight extends GridBrawl {
 			// implement this for the rest of them, try to avoid that null pointer
 			// maybe it doesn't matter?
 			
-			Boolean occupado = crt.getLocation(left.floor, left.column + c, left.row).isOccupied();
+			Boolean occupado = crt.getLocation(left.getFloor(), left.getColumn() + c, left.getRow()).isOccupied();
 			if (occupado) return false; // board space in between aaa and bbb is occupied by a different piece, therefore no LOS
 		}
 		return true;
@@ -70,10 +70,10 @@ public class LineOfSight extends GridBrawl {
 	
 	private static boolean checkForwardDiagonal(GameData crt, Brawler aaa, Brawler bbb, int distance) {
 		Brawler lowerLeft;
-		if (aaa.column < bbb.column) lowerLeft = aaa;
+		if (aaa.getColumn() < bbb.getColumn()) lowerLeft = aaa;
 		else lowerLeft = bbb;
 		for (int fd = 1; fd < distance; fd++) {
-			boolean occupado = (crt.getLocation(lowerLeft.floor, lowerLeft.column + fd, lowerLeft.row - fd).isOccupied());
+			boolean occupado = (crt.getLocation(lowerLeft.getFloor(), lowerLeft.getColumn() + fd, lowerLeft.getRow() - fd).isOccupied());
 			if (occupado) return false; // board space in between aaa and bbb is occupied by a different piece, therefore no LOS
 		}
 		return true;
@@ -81,10 +81,10 @@ public class LineOfSight extends GridBrawl {
 	
 	private static boolean checkRow(GameData crt, Brawler aaa, Brawler bbb, int distance) {
 		Brawler top;
-		if (aaa.row < bbb.row) top = aaa;
+		if (aaa.getRow() < bbb.getRow()) top = aaa;
 		else top = bbb;
 		for (int r = 1; r < distance; r++) {
-			boolean occupado = (crt.getLocation(top.floor, top.column, top.row + r).isOccupied());
+			boolean occupado = (crt.getLocation(top.getFloor(), top.getColumn(), top.getRow() + r).isOccupied());
 			if (occupado) return false; // board space in between aaa and bbb is occupied by a different piece, therefore no LOS
 		}
 		return true;
@@ -95,29 +95,29 @@ public class LineOfSight extends GridBrawl {
 		boolean answer = false;
 		boolean backslash = false;
 		int distance = 0;
-		if (aaa.floor != bbb.floor || aaa.pieceID == bbb.pieceID) return false;
-		if (aaa.column == bbb.column) {
-			distance = Math.abs(aaa.row - bbb.row);
+		if (aaa.getFloor() != bbb.getFloor() || aaa.getPieceID() == bbb.getPieceID()) return false;
+		if (aaa.getColumn() == bbb.getColumn()) {
+			distance = Math.abs(aaa.getRow() - bbb.getRow());
 			if (distance == 1) return true; // they are adjacent in the same column
 			answer = AIcheckRow(crt, aaa, bbb, distance);
 		}
-		else if (aaa.row == bbb.row) {
-			distance = Math.abs(aaa.column - bbb.column);
+		else if (aaa.getRow() == bbb.getRow()) {
+			distance = Math.abs(aaa.getColumn() - bbb.getColumn());
 			if (distance == 1) return true; // they are adjacent in the same row
 			answer = AIcheckColumn(crt, aaa, bbb, distance);
 		}
-		else if ((aaa.row + aaa.column) == (bbb.row + bbb.column)) {
-			distance = Math.abs(aaa.column - bbb.column);
+		else if ((aaa.getRow() + aaa.getColumn()) == (bbb.getRow() + bbb.getColumn())) {
+			distance = Math.abs(aaa.getColumn() - bbb.getColumn());
 			if (distance == 1) return true; // they are adjacent in the same forward diagonal
 			answer = AIcheckForwardDiagonal(crt, aaa, bbb, distance);
 		}
 		else {
 			for (int j = 1; j <= 4; j++) { // this is how we find brawlers on the back slash diagonal
-				if (aaa.row - j == bbb.row && aaa.column - j == bbb.column) backslash = true;
-				else if ((aaa.row + j == bbb.row) && (aaa.column + j == bbb.column)) backslash = true;
+				if (aaa.getRow() - j == bbb.getRow() && aaa.getColumn() - j == bbb.getColumn()) backslash = true;
+				else if ((aaa.getRow() + j == bbb.getRow()) && (aaa.getColumn() + j == bbb.getColumn())) backslash = true;
 			}
 			if (backslash) {
-				distance = Math.abs(aaa.column - bbb.column);
+				distance = Math.abs(aaa.getColumn() - bbb.getColumn());
 				if (distance == 1) return true; // they are adjacent in the same back diagonal
 				answer = AIcheckBackSlash(crt, aaa, bbb, distance);
 			}
@@ -128,10 +128,10 @@ public class LineOfSight extends GridBrawl {
 	private static boolean AIcheckBackSlash(AInode crt, Brawler aaa, Brawler bbb, int distance) {
 		Brawler upperLeft;
 		BoardSpace[][][] gameBoard = crt.getBoard();
-		if (aaa.column < bbb.column) upperLeft = aaa;
+		if (aaa.getColumn() < bbb.getColumn()) upperLeft = aaa;
 		else upperLeft = bbb;
 		for (int bd = 1; bd < distance; bd++) {
-			boolean occupado = (gameBoard[upperLeft.floor][upperLeft.column + bd][upperLeft.row + bd].isOccupied());
+			boolean occupado = (gameBoard[upperLeft.getFloor()][upperLeft.getColumn() + bd][upperLeft.getRow() + bd].isOccupied());
 			if (occupado) return false; // board space in between aaa and bbb is occupied by a different piece, therefore no LOS
 		}
 		return true;
@@ -140,10 +140,10 @@ public class LineOfSight extends GridBrawl {
 	private static boolean AIcheckColumn(AInode crt, Brawler aaa, Brawler bbb, int distance) {
 		Brawler left;
 		BoardSpace[][][] gameBoard = crt.getBoard();
-		if (aaa.column < bbb.column) left = aaa;
+		if (aaa.getColumn() < bbb.getColumn()) left = aaa;
 		else left = bbb;
 		for (int c = 1; c < distance; c++) {
-			BoardSpace examined = gameBoard[left.floor][left.column + c][left.row];
+			BoardSpace examined = gameBoard[left.getFloor()][left.getColumn() + c][left.getRow()];
 			if (examined.isOccupied()) return false; // board space in between aaa and bbb is occupied by a different piece, therefore no LOS
 		}
 		return true;
@@ -152,10 +152,10 @@ public class LineOfSight extends GridBrawl {
 	private static boolean AIcheckForwardDiagonal(AInode crt, Brawler aaa, Brawler bbb, int distance) {
 		Brawler lowerLeft;
 		BoardSpace[][][] gameBoard = crt.getBoard();
-		if (aaa.column < bbb.column) lowerLeft = aaa;
+		if (aaa.getColumn() < bbb.getColumn()) lowerLeft = aaa;
 		else lowerLeft = bbb;
 		for (int fd = 1; fd < distance; fd++) {
-			boolean occupado = (gameBoard[lowerLeft.floor][lowerLeft.column + fd][lowerLeft.row - fd].isOccupied());
+			boolean occupado = (gameBoard[lowerLeft.getFloor()][lowerLeft.getColumn() + fd][lowerLeft.getRow() - fd].isOccupied());
 			if (occupado) return false; // board space in between aaa and bbb is occupied by a different piece, therefore no LOS
 		}
 		return true;
@@ -164,22 +164,13 @@ public class LineOfSight extends GridBrawl {
 	private static boolean AIcheckRow(AInode crt, Brawler aaa, Brawler bbb, int distance) {
 		Brawler top;
 		BoardSpace[][][] gameBoard = crt.getBoard();
-		if (aaa.row < bbb.row) top = aaa;
+		if (aaa.getRow() < bbb.getRow()) top = aaa;
 		else top = bbb;
 		for (int r = 1; r < distance; r++) {
 			
-			boolean occupado = (gameBoard[top.floor][top.column][top.row + r].isOccupied());
+			boolean occupado = (gameBoard[top.getFloor()][top.getColumn()][top.getRow() + r].isOccupied());
 			if (occupado) return false; // board space in between aaa and bbb is occupied by a different piece, therefore no LOS
 		}
 		return true;
 	}	
-	
-	
-	
-	
-	
-	
-	
-	
-		
 } // end of LineOfSight class
