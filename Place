@@ -1,7 +1,7 @@
 package rpgGridBrawl;
 
 public class Place extends GridBrawl {
-	int pSelect, bLSelect, cSelect, rSelect, bLSelect2, cSelect2, rSelect2;
+	int pSelect, fSelect, cSelect, rSelect, fSelect2, cSelect2, rSelect2;
 	boolean[] validSelection;
 	boolean validChoice;
 	
@@ -36,50 +36,48 @@ public class Place extends GridBrawl {
 			return crtGame;
 		}
 		int[] sSSplit = splitBoardSpace(sSelect);
-		bLSelect = sSSplit[0];
+		fSelect = sSSplit[0];
 		cSelect = sSSplit[1];
 		rSelect = sSSplit[2];
 		if (pSelect == 8 || pSelect == 16) {
 			crtGame = this.dragonPrincess(crtGame,  pSelect);
 			if (!crtGame.isSuccessfulTurn()) return crtGame;
 		}	
-		crtGame.getBrawler(pSelect).onBoard = true;
-		crtGame.getBrawler(pSelect).floor = bLSelect;
-		crtGame.getBrawler(pSelect).column = cSelect;
-		crtGame.getBrawler(pSelect).row = rSelect;
+		crtGame.getBrawler(pSelect).setOnBoard(true);
+		crtGame.getBrawler(pSelect).setFloor(fSelect);
+		crtGame.getBrawler(pSelect).setColumn(cSelect);
+		crtGame.getBrawler(pSelect).setRow(rSelect);
 		crtGame = updateLastUsed(crtGame, pSelect);
-		crtGame.getLocation(bLSelect, cSelect, rSelect).setOccupiedBy(pSelect);
-		crtGame.getLocation(bLSelect, cSelect, rSelect).setOccupied(true);
+		crtGame.getLocation(fSelect, cSelect, rSelect).setOccupiedBy(pSelect);
+		crtGame.getLocation(fSelect, cSelect, rSelect).setOccupied(true);
 		crtGame.setSuccessfulTurn(true);
 		// if placed piece is a monster, set its CL to its BL
-		if (crtGame.getBrawler(pSelect) instanceof Monster) crtGame.getBrawler(pSelect).level = bLSelect;
-		if (crtGame.getBrawler(pSelect) instanceof Nemesis) crtGame.getBrawler(pSelect).level = 4;
+		if (crtGame.getBrawler(pSelect) instanceof Monster) crtGame.getBrawler(pSelect).setLevel(fSelect);
+		if (crtGame.getBrawler(pSelect).isGlorified()) crtGame.getBrawler(pSelect).setLevel(4);
 		if (crtGame.isRedsTurn() && crtGame.getGameRound() > 10) crtGame.setRedCanPlace(false);
 		if (!crtGame.isRedsTurn() && crtGame.getGameRound() > 10) crtGame.setBlueCanPlace(false);
 		crtGame.updateGameRecord("place", BRWLRS[pSelect], sSelect, "none");
 		interact.space();
 		interact.tellPlayer(2, 7, false); // "Placement Confirmed."
 		interact.space();
-		
 		return crtGame;
 	} // end of execute method
 	
 	private static boolean[] buildValidSelection(GameData crt) {
 		boolean[] valSel = new boolean[crt.getAllBrawlers().length];
-		for (int x = 0; x < valSel.length; x++) valSel[x] = false; // should not be necessary
 		boolean colorMatch = false;
 		Brawler jeb;
 		for (int vs = 0; vs < crt.getAllBrawlers().length; vs++) {
 			jeb = crt.getBrawler(vs);
-			colorMatch = ((crt.isRedsTurn() && jeb.isRed) || (!crt.isRedsTurn() && jeb.isBlue));
-			if ((jeb instanceof Character) && colorMatch && !jeb.usedLast && !jeb.onBoard) {
-				if (!jeb.glorified || canGlorifiedCharacterBePlaced(crt)) valSel[vs] = true; 
+			colorMatch = ((crt.isRedsTurn() && jeb.isRed()) || (!crt.isRedsTurn() && jeb.isBlue()));
+			if ((jeb instanceof Character) && colorMatch && !jeb.isUsedLast() && !jeb.isOnBoard()) {
+				if (!jeb.isGlorified() || canGlorifiedCharacterBePlaced(crt)) valSel[vs] = true; 
 			}
 			else if (jeb instanceof Nemesis) {
-				if (!jeb.onBoard && canNemesisBePlaced(crt) && !jeb.usedLast) valSel[vs] = true;
+				if (!jeb.isOnBoard() && canNemesisBePlaced(crt) && !jeb.isUsedLast()) valSel[vs] = true;
 			}
 			else if (jeb instanceof NPC || jeb instanceof Treasure || jeb instanceof Monster) {
-				if (!jeb.onBoard && !jeb.usedLast) valSel[vs] = true;
+				if (!jeb.isOnBoard() && !jeb.isUsedLast()) valSel[vs] = true;
 			}
 		}
 			// if there are only two brawlers in the off-board pool and one of them is yours, you can't place the other one.
@@ -87,7 +85,7 @@ public class Place extends GridBrawl {
 			int bwrB = -1;
 			int count = 0;
 			for (int y = 0; y < crt.getAllBrawlers().length; y++) {
-				if (!crt.getBrawler(y).onBoard && !(crt.getBrawler(y) instanceof Nemesis)) {
+				if (!crt.getBrawler(y).isOnBoard() && !(crt.getBrawler(y) instanceof Nemesis)) {
 					count++;
 					if (bwrB == -1 && bwrA == -1) bwrB = y;
 					if ((bwrA == -1) && (bwrB != y)) bwrA = y;
@@ -95,14 +93,14 @@ public class Place extends GridBrawl {
 				
 			}
 			if (count == 2) {
-				if (crt.isRedsTurn() && crt.getBrawler(bwrA).isRed) valSel[bwrB] = false;
-				if (crt.isRedsTurn() && crt.getBrawler(bwrB).isRed) valSel[bwrA] = false;
-				if (!crt.isRedsTurn() && crt.getBrawler(bwrA).isBlue) valSel[bwrB] = false;
-				if (!crt.isRedsTurn() && crt.getBrawler(bwrB).isBlue) valSel[bwrA] = false;
+				if (crt.isRedsTurn() && crt.getBrawler(bwrA).isRed()) valSel[bwrB] = false;
+				if (crt.isRedsTurn() && crt.getBrawler(bwrB).isRed()) valSel[bwrA] = false;
+				if (!crt.isRedsTurn() && crt.getBrawler(bwrA).isBlue()) valSel[bwrB] = false;
+				if (!crt.isRedsTurn() && crt.getBrawler(bwrB).isBlue()) valSel[bwrA] = false;
 				// However, if it is still the Square-off and there are two same-colored Characters in the pool, the opponent may place one of them.
 				// No, need to correct that.  If game round + remaining unplaced Characters > 10, player must place own Character
 				try {
-					colorMatch = ((crt.getBrawler(bwrA).isRed && crt.getBrawler(bwrB).isRed) || (crt.getBrawler(bwrA).isBlue && crt.getBrawler(bwrB).isBlue));
+					colorMatch = ((crt.getBrawler(bwrA).isRed() && crt.getBrawler(bwrB).isRed()) || (crt.getBrawler(bwrA).isBlue() && crt.getBrawler(bwrB).isBlue()));
 					if (crt.getGameRound() < 11 && colorMatch) {
 						valSel[bwrA] = true;
 						valSel[bwrB] = true;
@@ -118,9 +116,9 @@ public class Place extends GridBrawl {
 		int blueGConBoard = 0;
 		for (int g = 0; g < crt.getAllBrawlers().length; g++) {
 			Brawler zed = crt.getBrawler(g);
-			if (zed instanceof Character && zed.glorified && zed.onBoard) {
-				if (zed.isRed) redGConBoard++;
-				if (zed.isBlue) blueGConBoard++;
+			if (zed instanceof Character && zed.isGlorified() && zed.isOnBoard()) {
+				if (zed.isRed()) redGConBoard++;
+				if (zed.isBlue()) blueGConBoard++;
 			}
 		}
 		if (crt.isRedsTurn() && redGConBoard > 0) return false;
@@ -132,8 +130,8 @@ public class Place extends GridBrawl {
 		boolean answer = false;
 		int cl4CharsOnBoard = 0;
 		int nemesesOnBoard = 0;
-		for (int c = 0; c <= 7; c++) if (gdNBP.getBrawler(c).onBoard && gdNBP.getBrawler(c).level == 4) cl4CharsOnBoard++;
-		for (int n = 8; n <= 11; n++) if (gdNBP.getBrawler(n).onBoard) nemesesOnBoard++;
+		for (int c = 0; c <= 7; c++) if (gdNBP.getBrawler(c).isOnBoard() && gdNBP.getBrawler(c).getLevel() == 4) cl4CharsOnBoard++;
+		for (int n = 8; n <= 11; n++) if (gdNBP.getBrawler(n).isOnBoard()) nemesesOnBoard++;
 		if (nemesesOnBoard <= cl4CharsOnBoard && gdNBP.getGameRound() > 10) answer = true;
 		return answer;
 	}
@@ -149,7 +147,6 @@ public class Place extends GridBrawl {
 	}
 	
 	private GameData dragonPrincess(GameData crtGame, int pSelect) {
-		Interaction interact = new Interaction();
 		int pAlsoSelect = 8;
 		if (pSelect == 8) pAlsoSelect = 16;
 		interact.tellPlayer(interact.msgBuild(crtGame, 9, pAlsoSelect), false); // "When you place that piece you must also place the " + BRWLRS[pAlsoSelect] + "."
@@ -163,8 +160,8 @@ public class Place extends GridBrawl {
 				return crtGame;
 			}
 			int[] sSelect2array = splitBoardSpace(sSelect2);
-			int bLSelect2 = sSelect2array[0], cSelect2 = sSelect2array[1], rSelect2 = sSelect2array[2];
-			if (bLSelect2 != 4) {
+			int fSelect2 = sSelect2array[0], cSelect2 = sSelect2array[1], rSelect2 = sSelect2array[2];
+			if (fSelect2 != 4) {
 				interact.tellPlayer(interact.msgBuild(crtGame, 10, pAlsoSelect), false); // "The " + BRWLRS[pAlsoSelect] + " must be placed on board level 4."
 				interact.space();
 				validChoice2 = false;
@@ -183,14 +180,14 @@ public class Place extends GridBrawl {
 				validChoice2 = false;
 			}
 			else { // presumably this is a valid selection
-				String report = new String("You have selected to place the " + BRWLRS[pAlsoSelect] + " on space #" + bLSelect2 + cSelect2 + rSelect2);
+				String report = new String("You have selected to place the " + BRWLRS[pAlsoSelect] + " on space #" + fSelect2 + cSelect2 + rSelect2);
 				interact.tellPlayer(report, false);
 				boolean confirm = interact.confirm();
 				if (confirm) {
-					crtGame.getBrawler(pAlsoSelect).onBoard = true;
-					crtGame.getBrawler(pAlsoSelect).floor = bLSelect2;
-					crtGame.getBrawler(pAlsoSelect).column = cSelect2;
-					crtGame.getBrawler(pAlsoSelect).row = rSelect2;
+					crtGame.getBrawler(pAlsoSelect).setOnBoard(true);
+					crtGame.getBrawler(pAlsoSelect).setFloor(fSelect2);
+					crtGame.getBrawler(pAlsoSelect).setColumn(cSelect2);
+					crtGame.getBrawler(pAlsoSelect).setRow(rSelect2);
 					crtGame.getLocation(4, cSelect2, rSelect2).setOccupiedBy(pAlsoSelect);
 					crtGame.getLocation(4, cSelect2, rSelect2).setOccupied(true);
 					crtGame.setSuccessfulTurn(true);
