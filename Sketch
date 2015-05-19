@@ -5,7 +5,6 @@ public class Sketch {
 	private int[][] lines;
 	private int numberOfLines;
 	private int[] clPlacement;
-	
 	public Sketch(int bwlr) {
 		int bl = 0;
 		clPlacement = new int[2];
