@@ -6,7 +6,7 @@ class Orc extends Brawler implements Monster {
 	private boolean onBoard, usedLast, handsFull;
 	private final boolean isRed, isBlue;
 	private final String letterName;
-	private char suit;
+	private final char suit;
 	
 	public Orc() {
 		pieceID = 12;
@@ -64,15 +64,15 @@ class Orc extends Brawler implements Monster {
 	
 	public boolean canAttack(Brawler victim) {
 		boolean answer = false;
-		int defense = (victim.level + victim.shieldBonus + victim.clericDefenseBonus);
-		int attack = this.level;
+		int defense = (victim.getLevel() + victim.getShieldBonus() + victim.getClericDefenseBonus());
+		int attack = this.getLevel();
 		if (victim instanceof Warrior) attack--; // Orc is weak vs. Warrior
 		boolean overcome = (attack >= defense);
 		
 		if (overcome && (victim instanceof Character || victim instanceof Nemesis)) answer = true;
 		else if (victim instanceof Monster && (attack > defense)) answer = true;
 		else if (victim instanceof NPC) answer = false;
-		else if (!this.handsFull && victim instanceof Treasure) answer = true;
+		else if (!this.isHandsFull() && victim instanceof Treasure) answer = true;
 		return answer;
 	}
 	
