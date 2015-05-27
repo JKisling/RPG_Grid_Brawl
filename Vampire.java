@@ -1,6 +1,6 @@
 package rpgGridBrawl;
 
-public class Abyss extends Brawler implements Nemesis {
+public class Vampire extends Brawler implements Nemesis {
 	private int floor, column, row, level, pieceID;
 	private int[] playground;
 	private boolean onBoard, usedLast;
@@ -8,14 +8,14 @@ public class Abyss extends Brawler implements Nemesis {
 	private final String letterName;
 	private final char suit;
 	
-	public Abyss() {
-		pieceID = 10;
+	public Vampire() {
+		pieceID = 9;
 		onBoard = false;
-		letterName = "AB";
+		letterName = "VP";
 		isRed = false;
 		isBlue = false;
-		suit = 'M';
-		playground = new int[14];
+		suit = 'C';
+		playground = new int[24];
 		level = 4;
 		poweredUp = false;
 		handsFull = false;
@@ -66,9 +66,9 @@ public class Abyss extends Brawler implements Nemesis {
 		}
 		return true;
 	}
-
+	
 	public void getsBumped() {
 		this.remove();
 	}
-}
 
+} // end of Vampire class
