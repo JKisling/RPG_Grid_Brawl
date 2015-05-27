@@ -56,7 +56,5 @@ public class Merchant extends Brawler implements NPC {
 	
 	public boolean canAttack(Brawler victim) { return false; }
 	
-	public void getsBumped() {
-		this.remove();
-	}
+	public void getsBumped() { this.remove(); }
 } // end of Merchant class
