@@ -601,12 +601,6 @@ public class GameData {
 		if (high > i) quickSort(arr, i, high);
 	}
 	
-	public void rebuildAllPlaygrounds() {
-		for (int j = 0; j < this.brawlers.length; j++) {
-			this.getBrawler(j).setPlayground(this.buildPlayground(j));
-		}
-	}
-	
 	public void removeBrawler(int pieceID) {
 		int fl = this.getBrawler(pieceID).getFloor();
 		int cc = this.getBrawler(pieceID).getColumn();
@@ -762,7 +756,8 @@ public class GameData {
 			this.status[b] = build;
 		}
 	}
-
+	
+	// this method is poorly written.
 	public void updateTreasureEffects() {
 		Brawler swd = new Sword();
 		Brawler shd = new Shield();
