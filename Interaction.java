@@ -243,30 +243,21 @@ class Interaction extends GridBrawl {
 	
 	public int getSpendSelection1(boolean[] choices) {
 		int select = getIntOrNothing();
-		if (choices[0] && select == 1) return 1;
-		if (choices[1] && select == 2) return 2;
-		if (choices[2] && select == 3) return 3;
+		if (choices[0] && (select == 1)) return 1;
+		if (choices[1] && (select == 2)) return 2;
 		return -1;
 	}
 	
 	public int getSpendSelection2(int[] bribeList) {
 		int select = getIntOrNothing();
-		if (select > 0 && select < bribeList.length) return --select; // selection should correspond to place in bribeList[]
+		if (select > 0 && (select <= bribeList.length)) return (select - 1); // selection should correspond to place in bribeList[]
 		return -1;
 	}
 	
+	
 	public int getSpendSelection3() {
 		int select = getIntOrNothing();
-		if (select != 1 && select != 2 && select != 3) select = -1;
-		return select;
-	}
-	
-	public int getSpendSelection4(boolean[] opts3) {
-		int select = getIntOrNothing();
-		if (select != 1 && select != 2 && select != 3) select = -1;
-		if (select == 1 && !opts3[0]) select = -1;
-		if (select == 2 && !opts3[1]) select = -1;
-		if (select == 3 && !opts3[2]) select = -1;
+		if ((select < 1) || (select > 3)) select = -1;
 		return select;
 	}
 	
@@ -581,6 +572,31 @@ class Interaction extends GridBrawl {
 		return report;
 	}
 	
+	public String reportOnAISelection(AIresult AIr) {
+		report = "";
+		if (AIr.getID() == -1) return "Do nothing";
+		switch (AIr.getAction()) {
+		case 1: report = "Place the " + BRWLRS[AIr.getID()] + " on space #" + AIr.getIdealPlace() + ".";	break;
+		case 2: report = "Move the " + BRWLRS[AIr.getID()] + " to space #" + AIr.getIdealPlace() + ".";		break;
+		case 3: report = "Use the " + BRWLRS[AIr.getID()] + " to attack the " + 
+				BRWLRS[AIr.getSecondaryTarget()] + " on space #" + AIr.getIdealPlace() + ".";				break;
+		case 4: report = "Shoot a fireball at the " + BRWLRS[AIr.getSecondaryTarget()] + ".";				break;
+		case 5: report = "Have the " + BRWLRS[AIr.getID()] + " flee from the brawl";						break;
+		case 6: report = "Glorify the " + BRWLRS[AIr.getID()] + ".";										break;
+		case 7: report = "Pick the " + BRWLRS[AIr.getSecondaryTarget()] + "'s pocket.";						break;
+		case 8: report = "Purchase the " + BRWLRS[AIr.getSecondaryTarget()] + " for the " + BRWLRS[AIr.getID()] + ".";	break;
+		case 9: report = "Perform the ritual of Sacrifice, targeting the " + BRWLRS[AIr.getSecondaryTarget()] + ".";	break;
+		case 10: report = "Transfer Treasure from the " + BRWLRS[AIr.getID()] + 
+				" to the " + BRWLRS[AIr.getSecondaryTarget()] + ".";										break;
+		case 11: report = "Humble the " + BRWLRS[AIr.getID()] + 
+				" before the " + BRWLRS[AIr.getSecondaryTarget()] + ".";									break;
+		case 12: report = "Bribe the " + BRWLRS[AIr.getSecondaryTarget()] +
+				" to move to space #" + AIr.getIdealPlace();												break;
+		default: report = "\tThere was a problem, passed in Action # is " + AIr.getAction();
+		}
+		return report;
+	}
+	
 	public String reportOnFireballOptions(GameData crt, int[] targets, int shooter) {
 		report = "";
 		int numSay = 1;
@@ -674,7 +690,6 @@ class Interaction extends GridBrawl {
 		String report = "";
 		if (opts[0]) report += "1. Bribe any one brawler within line of sight to move to any unoccupied space.\n";
 		if (opts[1]) report += "2. Purchase any one Treasure from the Merchant.\n";
-		if (opts[2]) report += "3. Your rogue may invest the Diamond to take any one Treasure on the same board level.\n";
 		report += "Enter your selection: ";
 		return report;
 	}
@@ -687,15 +702,6 @@ class Interaction extends GridBrawl {
 			counter++;
 		}
 		report += "Enter the number of your selection: ";
-		return report;
-	}
-	
-	public String reportOnSpendOptions3(boolean[] opts3) {
-		String report = "Your investment will yield one of the following:\n";
-		if (opts3[0]) report += "1. Sword\n";
-		if (opts3[1]) report += "2. Shield\n";
-		if (opts3[2]) report += "3. Ring\n";
-		report += "Enter your selection: ";
 		return report;
 	}
 	
@@ -763,7 +769,5 @@ class Interaction extends GridBrawl {
 		if (isPrompt) System.out.print(say);
 		else System.out.println(say);
 	}
-	
-	
 } // end of Interaction class
 	
