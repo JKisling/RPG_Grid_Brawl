@@ -3,7 +3,6 @@ package rpgGridBrawl;
 class Warrior extends Brawler implements Character {
 	private int isCharging; // how am I supposed to make this work?
 	private int floor, column, row, level, pieceID, possession;
-	private int[] playground;
 	private boolean onBoard, usedLast, isRed, isBlue;
 	private final String letterName;
 	private final char suit;
@@ -33,7 +32,6 @@ class Warrior extends Brawler implements Character {
 		possession = -1;
 		letterName = "W";
 		suit = 'W';
-		playground = new int[32];
 	}
 	
 	public int getFloor() 				{ return this.floor; }
@@ -41,39 +39,37 @@ class Warrior extends Brawler implements Character {
 	public int getRow() 				{ return this.row; }
 	public int getLevel() 				{ return this.level; }
 	public int getSwordBonus() 			{ return this.swordBonus; }
-	public int getShieldBonus() 			{ return this.shieldBonus; }
-	public int getClericDefenseBonus() 		{ return this.clericDefenseBonus; }
+	public int getShieldBonus() 		{ return this.shieldBonus; }
+	public int getClericDefenseBonus() 	{ return this.clericDefenseBonus; }
 	public int getPossession() 			{ return this.possession; }
 	public int getPieceID() 			{ return this.pieceID; }
 	public int isCharging()  			{ return this.isCharging; }
-	public int[] getPlayground() 			{ return this.playground; }
 	public char getSuit() 				{ return this.suit; }
 	public boolean isOnBoard() 			{ return this.onBoard; }
-	public boolean isMoveable() 			{ return true; }
-	public boolean isUsedLast() 			{ return this.usedLast; }
+	public boolean isMoveable() 		{ return true; }
+	public boolean isUsedLast() 		{ return this.usedLast; }
 	public boolean isRed() 				{ return this.isRed; }
 	public boolean isBlue() 			{ return this.isBlue; }
-	public boolean isPoweredUp() 			{ return this.poweredUp; }
-	public boolean isHandsFull() 			{ return this.handsFull; }
-	public boolean isGlorified() 			{ return this.glorified; }
-	public String getLetterName() 			{ return this.letterName; }
+	public boolean isPoweredUp() 		{ return this.poweredUp; }
+	public boolean isHandsFull() 		{ return this.handsFull; }
+	public boolean isGlorified() 		{ return this.glorified; }
+	public String getLetterName() 		{ return this.letterName; }
 	
 	public void setFloor(int x) 			{ this.floor = x; }
 	public void setColumn(int x) 			{ this.column = x; }
-	public void setRow(int x) 			{ this.row = x; }
+	public void setRow(int x) 				{ this.row = x; }
 	public void setLevel(int x) 			{ this.level = x; } 
 	public void setSwordBonus(int x) 		{ this.swordBonus = x; } 
 	public void setShieldBonus(int x) 		{ this.shieldBonus = x; } 
-	public void setClericDefenseBonus(int x)	{ this.clericDefenseBonus = x; } 
+	public void setClericDefenseBonus(int x){ this.clericDefenseBonus = x; } 
 	public void setCharging(int x) 			{ this.isCharging = x; }
 	public void setPossession(int x) 		{ this.possession = x; } 
 	public void setPieceID(int x) 			{ this.pieceID = x; }
-	public void setPlayground(int[] x) 		{ this.playground = x; }
 	public void setOnBoard(boolean x) 		{ this.onBoard = x; }
 	public void setUsedLast(boolean x) 		{ this.usedLast = x; }
-	public void setPoweredUp(boolean x) 		{ this.poweredUp = x; }
-	public void setHandsFull(boolean x) 		{ this.handsFull = x; }
-	public void setGlorified(boolean x) 		{ this.glorified = x; }
+	public void setPoweredUp(boolean x) 	{ this.poweredUp = x; }
+	public void setHandsFull(boolean x) 	{ this.handsFull = x; }
+	public void setGlorified(boolean x) 	{ this.glorified = x; }
 	
 	// assumes standard set of brawlers
 	public boolean canAttack(Brawler victim) {
