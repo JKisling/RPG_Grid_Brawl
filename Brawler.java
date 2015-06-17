@@ -12,7 +12,6 @@ package rpgGridBrawl;
 public abstract class Brawler {
 	
 	protected int floor, column, row, level, swordBonus, shieldBonus, clericDefenseBonus, possession, pieceID;
-	protected int[] playground;
 	protected char suit;
 	protected boolean onBoard, moveable, usedLast, isRed, isBlue, poweredUp, handsFull, glorified;
 	protected String letterName;
@@ -31,7 +30,6 @@ public abstract class Brawler {
 	public abstract int getClericDefenseBonus();
 	public abstract int getPossession();
 	public abstract int getPieceID();
-	public abstract int[] getPlayground();
 	public abstract char getSuit();
 	public abstract boolean isOnBoard();
 	public abstract boolean isMoveable();
@@ -43,6 +41,12 @@ public abstract class Brawler {
 	public abstract boolean isGlorified();
 	public abstract String getLetterName();
 	
+	public int getLoc() {
+		if (!this.isOnBoard()) return 0;
+		return ((this.getFloor() * 100) + (this.getColumn() * 10) + this.getRow());
+	}
+	
+	
 	public abstract void setFloor(int x);
 	public abstract void setColumn(int x);
 	public abstract void setRow(int x);
@@ -52,7 +56,6 @@ public abstract class Brawler {
 	public abstract void setClericDefenseBonus(int x);
 	public abstract void setPossession(int x);
 	public abstract void setPieceID(int x);
-	public abstract void setPlayground(int[] x);
 	public abstract void setOnBoard(boolean x);
 	public abstract void setUsedLast(boolean x);
 	public abstract void setPoweredUp(boolean x);
