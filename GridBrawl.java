@@ -233,7 +233,6 @@ public class GridBrawl {
 			GM.updateGhostEffects();
 			GM.updateTreasureEffects();
 			GM.setSuccessfulTurn(false);
-			GM.rebuildAllPlaygrounds();
 		}
 		return GM;
 	}
@@ -344,4 +343,4 @@ public class GridBrawl {
 		return uLU;
 	}
 	
-} //
+} //end of gridBrawl class
