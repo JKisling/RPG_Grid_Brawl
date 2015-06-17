@@ -2,7 +2,6 @@ package rpgGridBrawl;
 
 class Serpent extends Brawler implements Monster {
 	private int floor, column, row, level, pieceID, possession;
-	private int[] playground;
 	private boolean onBoard, usedLast;
 	private final boolean isRed, isBlue;
 	private final String letterName;
@@ -22,7 +21,6 @@ class Serpent extends Brawler implements Monster {
 		isRed = false;
 		isBlue = false;
 		suit = 'R';
-		playground = new int[24];
 	}
 
 	public int getFloor() {return this.floor;}
@@ -34,7 +32,6 @@ class Serpent extends Brawler implements Monster {
 	public int getClericDefenseBonus() {return this.clericDefenseBonus;}
 	public int getPossession() {return this.possession;}
 	public int getPieceID() {return this.pieceID;}
-	public int[] getPlayground() {return this.playground;}
 	public char getSuit() {return this.suit;}
 	public boolean isOnBoard() {return this.onBoard;}
 	public boolean isMoveable() {return true;}
@@ -55,7 +52,6 @@ class Serpent extends Brawler implements Monster {
 	public void setClericDefenseBonus(int x) {this.clericDefenseBonus = x;} 
 	public void setPossession(int x) {this.possession = x;} 
 	public void setPieceID(int x) {this.pieceID = x;}
-	public void setPlayground(int[] x) {this.playground = x;}
 	public void setOnBoard(boolean x) {this.onBoard = x;}
 	public void setUsedLast(boolean x) {this.usedLast = x;}
 	public void setPoweredUp(boolean x) {return;}
