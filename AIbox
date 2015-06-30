@@ -1,0 +1,84 @@
+package rpgGridBrawl;
+
+/**
+ * 
+ * The purpose of the AIbox is to serve as a simple API for getting AI decisions.
+ * All you should need to do is, input an AInode.toString() or a GameData object, call AIbox.getDecision() 
+ * and you will get back an AIresult telling you what the AI thinks you should do.
+ * AIbox uses AIstructure2, which only gets the local decision.  AIbox can also spit out random moves, using the AIrandomizer class.
+ *
+ */
+public class AIbox {
+	private static AInode boxNode;
+	private static String boxNodeString;
+	private static AIhands hands;
+	
+	public AIbox(String nodeString) {
+		boxNodeString = nodeString;
+		boxNode = new AInode(nodeString);
+		hands = new AIhands();
+	}
+	
+	public AIbox(GameData crt) {
+		boxNode = new AInode(crt);
+		boxNodeString = boxNode.toString();
+		hands = new AIhands();
+	}
+	
+	public AIresult getDecision() {
+		String nodeCheck = boxNode.checkNodeIntegrity();
+		if (!nodeCheck.equals("OK")) {
+			System.out.println("Cannot proceed, passed in node String has the following flaw:");
+			System.out.println(nodeCheck);
+			System.out.println(boxNodeString);
+			System.exit(0);
+		}
+		boxNodeString = boxNode.toString();
+		boolean legalMove = false;
+		int retries = 0;
+		AIresult result = new AIresult();
+		do {
+			AIstructure2 wopr = new AIstructure2(boxNodeString);
+			if (wopr.getNode().getRound() < 11) result = wopr.bestSquareOffAction(wopr.getNode().isRedsTurn());
+			else result = wopr.bestBrawlAction(wopr.getNode().isRedsTurn());
+			// want a good QA apparatus here, this does not seem to be working.
+			/*
+			String QAstring = hands.performDesiredAction(boxNodeString, result);
+			AInode QAnode = new AInode(QAstring);
+			String amIOK = QAnode.checkNodeIntegrity();
+			if (amIOK.equals("OK")) legalMove = true;
+			else retries++;
+			*/
+			legalMove = true;
+		} while(!legalMove && retries < 5);
+		return result;
+	}
+	
+	public String getDecisionAsSuggestion() {
+		String suggestion = "";
+		AIresult result = this.getDecision();
+		Interaction interact = new Interaction();
+		suggestion = interact.reportOnAISelection(result);
+		return ("The AI suggests: " + suggestion);
+	}
+	
+	public AIresult getRandomAction() {
+		AIresult result = new AIresult();
+		boolean randomizerSuccess = false;
+		int retries = 0;
+		while (!randomizerSuccess && retries < 10) {
+			try {
+				AIrandomizer randomizer = new AIrandomizer(boxNodeString);
+				result = randomizer.randomAction();
+				randomizerSuccess = true;
+			} catch(Exception ex) { randomizerSuccess = false; }
+			retries++;
+		}
+		return result;
+	}
+	
+	public void refresh(String nodeString) {
+		boxNode.setToString(nodeString);
+		boxNodeString = nodeString;
+	}
+}
