@@ -15,9 +15,9 @@ public class GameEditor extends GridBrawl {
 		String[] gameNames = interact.getNames();
 		gameNames[1] = "edit-" + gameNames[1];
 		gameNames[2] = "edit-" + gameNames[2];
-		game.gameName = gameNames[0];
-		game.redPlayerName = gameNames[1];
-		game.bluePlayerName = gameNames[2];
+		game.getConfig().setGameName(gameNames[0]);
+		game.getConfig().setRedPlayerName(gameNames[1]);
+		game.getConfig().setBluePlayerName(gameNames[2]);
 		game.setRedCanPlace(true);
 		game.setBlueCanPlace(true);
 		
