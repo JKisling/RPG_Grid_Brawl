@@ -1,0 +1,31 @@
+package rpgGridBrawl;
+
+/**
+ * 
+ * This is simply a data class that holds some player options that are not directly related to game play itself.
+ * Its purpose is to pull a bit of functionality and data out of GameData and AInode.
+ *
+ */
+public class Config {
+	private String gameName, redPlayerName, bluePlayerName, crtPlayerName;
+	private int gameID; // used to match Config objects to GameData or AInode, should that be necessary
+	private boolean AIplaysRed, AIplaysBlue;
+	
+	public Config() {}
+	
+	public String getGameName() 		{ return this.gameName; }
+	public String getRedPlayerName() 	{ return this.redPlayerName; }
+	public String getBluePlayerName() 	{ return this.bluePlayerName; }
+	public String getCrtPlayerName() 	{ return this.crtPlayerName; }
+	public int getGameID() 				{ return this.gameID; }
+	public boolean isAIRed() 			{ return this.AIplaysRed; }
+	public boolean isAIBlue() 			{ return this.AIplaysBlue; }
+	
+	public void setGameName(String x) 		{ this.gameName = x; }
+	public void setRedPlayerName(String x) 	{ this.redPlayerName = x; }
+	public void setBluePlayerName(String x) { this.bluePlayerName = x; }
+	public void setCrtPlayerName(String x) 	{ this.crtPlayerName = x; }
+	public void setGameID(int y)			{ this.gameID = y; }
+	public void setAIRed(boolean z) 		{ this.AIplaysRed = z; }
+	public void setAIBlue(boolean z) 		{ this.AIplaysBlue = z; }
+}
