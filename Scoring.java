@@ -6,13 +6,13 @@ public class Scoring {
 	private ScoringProfile sProf;
 	private int[] brLocs; // an array of all the locations of all the brawlers
 	
-	public Scoring(AInode scoreMe, ScoringProfile sp) {
-		CRT = scoreMe;
+	public Scoring(String scoreMe, ScoringProfile sp) {
+		CRT = new AInode(scoreMe);
 		sProf = sp;
-		int blength = scoreMe.getBrawlersLength();
+		int blength = CRT.getBrawlersLength();
 		this.brLocs = new int[blength];
 		for (int a = 0; a < blength; a++) {
-			Brawler locateMe = scoreMe.getBrawler(a);
+			Brawler locateMe = CRT.getBrawler(a);
 			brLocs[a] = ((locateMe.getFloor() * 100) + (locateMe.getColumn() * 10) + locateMe.getRow());
 		}
 	}
@@ -20,10 +20,7 @@ public class Scoring {
 	public void reset(String nodeString) {
 		this.CRT.setToString(nodeString);
 		int blength = CRT.getBrawlersLength();
-		for (int a = 0; a < blength; a++) {
-			Brawler locateMe = CRT.getBrawler(a);
-			this.brLocs[a] = ((locateMe.getFloor() * 100) + (locateMe.getColumn() * 10) + locateMe.getRow());
-		}
+		for (int a = 0; a < blength; a++) this.brLocs[a] = CRT.getBrawler(a).getLoc();
 	}
 	
 	public int[] squareOffScore() {
@@ -79,7 +76,7 @@ public class Scoring {
 				brawl[color] += (sProf.getB(2) * status[3]); // powered up?
 				brawl[color] += (sProf.getB(14) * status[4]); // any treasure
 				brawl[color] += (sProf.getB(15) * status[5]); // SS treasure
-				brawl[color] += (sProf.getB(8) * status[6]); // on the glory space?
+				brawl[color] += (sProf.getB(8) * status[6]); // ready to be glorified?
 			}
 			else if (glorified) brawl[color] += sProf.getB(18); // glorified and off board
 		}
@@ -134,15 +131,18 @@ public class Scoring {
 		boolean empty, empty2, haunted, haunted2;
 		if (!CRT.getBrawler(mage_id).isOnBoard()) return false;
 		int fM = CRT.getBrawler(mage_id).getFloor();
+		if (fM == 0) return false;
 		int cM = CRT.getBrawler(mage_id).getColumn();
 		int rM = CRT.getBrawler(mage_id).getRow();
 		int ccrr = getCCRR(fM);
 		for (int x = 0; x < ccrr; x++) {
-			empty = !CRT.getLocation(fM, x, rM).isOccupied();
-			haunted = CRT.getLocation(fM, x, rM).isGhostEffect();
-			empty2 = !CRT.getLocation(fM, cM, x).isOccupied();
-			haunted2 = CRT.getLocation(fM, cM, x).isGhostEffect();
-			if ((empty && haunted) || (empty2 && haunted2)) return true;
+			try {
+				empty = !CRT.getLocation(fM, x, rM).isOccupied();
+				haunted = CRT.getLocation(fM, x, rM).isGhostEffect();
+				empty2 = !CRT.getLocation(fM, cM, x).isOccupied();
+				haunted2 = CRT.getLocation(fM, cM, x).isGhostEffect();
+				if ((empty && haunted) || (empty2 && haunted2)) return true;
+			} catch(NullPointerException ex) { continue; }
 		}
 		return false;
 	}
@@ -171,7 +171,7 @@ public class Scoring {
 				if (zed.isRed()  && zed.getPossession() - zed.getPieceID() == 20) status[5] = 1;
 				if (zed.isBlue() && zed.getPossession() - zed.getPieceID() == 16) status[5] = 1;
 			}
-			if (!zed.isGlorified() && zed.getFloor() == 5) status[6] = 1;
+			if (!zed.isGlorified() && zed.getFloor() == 5 && zed.getLevel() == 4) status[6] = 1;
 		}
 		else if (zed.isGlorified()) status[2] = 1;
 		return status;
@@ -361,7 +361,7 @@ public class Scoring {
 		for (int c = 0; c <= 7; c++) {
 			Brawler character = CRT.getBrawler(c);
 			if (!character.isOnBoard() || character.getPossession() != 23) continue;
-			if(inPlayground(CRT.getPlayground(c), brLocs[19])) {
+			if(inPlayground(CRT.buildPlayground(c), brLocs[19])) {
 				if (character.isRed()) result[0] = 1;
 				else if (character.isBlue()) result[1] = 1; 
 			}
@@ -383,7 +383,7 @@ public class Scoring {
 		for (int n = 8; n <= 11; n++) {
 			Brawler nemesis = CRT.getBrawler(n);
 			if (!nemesis.isOnBoard()) continue;
-			int[] nPlayground = CRT.getPlayground(n);
+			int[] nPlayground = CRT.buildPlayground(n);
 			for (int c = 0; c <= 7; c++) {
 				Brawler character = CRT.getBrawler(c);
 				if (!character.isOnBoard()) continue; 
