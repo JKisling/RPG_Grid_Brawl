@@ -16,16 +16,22 @@ public class AInode {
 	public AInode() {
 		redLastUsed = -1;
 		blueLastUsed = -1;
+		redCanPlace = true;
+		blueCanPlace = true;
+		redsTurn = true;
 		brawlers = GameData.makeSetOfPieces();
 		gameBoard = GameData.makeBoard();
 		scores = new int[2];
-		playgrounds = new int[brawlers.length][64];
-		blrStatuses = new String[brawlers.length];
+		playgrounds = new int[24][64];
+		blrStatuses = new String[24];
 		updateStatusArray();
 		setPlaygrounds();
 	}
 	
 	public AInode(GameData GM) {
+		round = GM.getGameRound();
+		redCanPlace = GM.canRedPlace();
+		blueCanPlace = GM.canBluePlace();
 		redsTurn = GM.isRedsTurn();
 		redLastUsed = GM.getRedLastUsed();
 		blueLastUsed = GM.getBlueLastUsed();
@@ -98,23 +104,27 @@ public class AInode {
 			if (this.getBrawler(b).isOnBoard()) {
 				this.getLocation(fcr[0], fcr[1], fcr[2]).setOccupied(true);
 				this.getLocation(fcr[0], fcr[1], fcr[2]).setOccupiedBy(b);
+				if (this.getBrawler(b) instanceof Treasure) {
+					for (int c = 0; c < this.getBrawlersLength(); c++) {
+						if (this.getBrawler(c).getPossession() == b) this.getLocation(fcr[0], fcr[1], fcr[2]).setOccupiedBy(c);
+					}
+				}
 			}
 			if (this.getBrawler(b) instanceof Ghost) this.addGhostEffect(fcr[0], fcr[1], fcr[2]);
 			if (this.getBrawler(b) instanceof Leper) this.addLeperOrSentinelEffect(fcr[0], 'L');
 			if (this.getBrawler(b) instanceof Sentinel) this.addLeperOrSentinelEffect(fcr[0], 'S');
 			
 		}
-		blrStatuses = new String[brawlers.length];
+		this.blrStatuses = new String[brawlers.length];
 		updateStatusArray();
-		playgrounds = new int[(this.brawlers.length)][64];
-		setPlaygrounds();
-		
+		this.playgrounds = new int[(this.brawlers.length)][64];
+		// setPlaygrounds();
 		walter.close();
 	}
 	
 	// relies on standard brawler set for the ghost
 	public void addGhostEffect(int fl, int cc, int rr) {
-		if (fl == 0) return;
+		if (fl == 0 || fl == 5) return;
 		int q = 2;
 		if (fl == 2) q = 3;
 		else if (fl == 1) q = 4;
@@ -149,6 +159,7 @@ public class AInode {
 		int[] playground = new int[0];
 		char suit = this.getBrawler(pieceID).getSuit();
 		Brawler xyz = this.getBrawler(pieceID);
+		int iAmHere = xyz.getLoc();
 		if (!xyz.isOnBoard() || xyz instanceof Treasure) return new int[0];
 		else if (this.getLocation(xyz.getFloor(), xyz.getColumn(), xyz.getRow()).isGhostEffect()) return new int[0];
 		else if (xyz instanceof Rogue && this.getBrawler("Sentinel").getFloor() == xyz.getFloor()) return new int[0];
@@ -160,15 +171,15 @@ public class AInode {
 			case 'R': playground = this.buildPlayground_R(xyz.getPieceID());	break;
 			}
 		}
-		return this.buildCleanPlayground(playground);		
+		return this.buildCleanPlayground(playground, iAmHere);		
 	}
 	
 	// sorts playground and eliminates duplicates and zeroes
-	private int[] buildCleanPlayground(int[] dirty) {
+	private int[] buildCleanPlayground(int[] dirty, int iAmHere) {
 		quickSort(dirty, 0, dirty.length - 1);
 		int countLegit = 0;
 		for (int i = 0; i < dirty.length; i++) {
-			if (dirty[i] == 0 || (i > 0 && (dirty[i] == dirty[i - 1]))) continue;
+			if (dirty[i] == 0 || (i > 0 && (dirty[i] == dirty[i - 1])) || (dirty[i] == iAmHere)) continue;
 			else countLegit++;
 		}
 		int[] clean = new int[countLegit];
@@ -178,7 +189,7 @@ public class AInode {
 				clean[xy++] = dirty[0];
 			}
 			else if (j > 0) {
-				if (dirty[j] == 0) continue;
+				if (dirty[j] == 0 || (dirty[j] == iAmHere)) continue;
 				else if (dirty[j] == dirty[j - 1]) continue;
 				else clean[xy++] = dirty[j];
 			}
@@ -220,7 +231,7 @@ public class AInode {
 		int[] upAndDown = this.buildPlayground_upAndDown(id);
 		int[] playground = new int[36];
 		for (int a = 0; a < 4; a++) if (upAndDown[a] != 0) playground[xy++] = upAndDown[a];
-		if (20 == jimbo.getPossession()) travel = 4;
+		if (20 == jimbo.getPossession() && jimbo instanceof Warrior) travel = 4;
 		for (int i = 0; i <= 7; i++) {
 			keepLooking = true;
 			switch (i) {
@@ -318,6 +329,7 @@ public class AInode {
 			else { // Mage can blink
 				int jC = jimbo.getColumn(), jR = jimbo.getRow();
 				for (int c = 0; c < ccrr; c++) {
+					if (fl == 5) break;
 					try {
 						if (!this.getLocation(fl, c, jR).isOccupied()) playground[xy++] = ((fl * 100) + (c * 10) + jR);
 					} catch(NullPointerException ex) {
@@ -328,6 +340,7 @@ public class AInode {
 					
 				}
 				for (int r = 0; r < ccrr; r++) {
+					if (fl == 5) break;
 					if (!this.getLocation(fl, jC, r).isOccupied()) playground[xy++] = ((fl * 100) + (jC * 10) + r);
 				}
 			}
@@ -459,6 +472,58 @@ public class AInode {
 		return next;
 	}
 	
+	public String checkNodeIntegrity() {
+		// check 1: All brawlers on board are registered as occupying the spaces they are on.
+		for (int b = 0; b < 24; b++) {
+			int loc = this.getBrawler(b).getLoc();
+			if (this.getBrawler(b).isOnBoard()) {
+				BoardSpace examined = this.getLocation(loc);
+				if (!examined.isOccupied()) return ("BoardSpace " + loc + " shows as unoccupied but Brawler " + b + " is on it.");
+				else {
+					int occByWhat = examined.getOccupiedBy();
+					if (b != occByWhat) {
+						if (this.getBrawler(b) instanceof Treasure && this.getBrawler(occByWhat).getPossession() == b) {}
+						else return ("Brawler " + b + " is on BoardSpace " + loc + " which is occupied by " + GridBrawl.BRWLRS[occByWhat]);
+					}
+				}
+			}
+		}
+		// check 2: All empty spaces are occupied by -1
+		int ccrr = 5;
+		for (int f = 1; f <= 5; f++) {
+			switch (f) {
+			case 1: ccrr = 5;	break;
+			case 2: ccrr = 4;	break;
+			case 3: ccrr = 3;	break;
+			case 4: ccrr = 3;	break;
+			case 5: ccrr = 1;	break;
+			}
+			for (int c = 0; c < ccrr; c++) {
+				for (int r = 0; r < ccrr; r++) {
+					BoardSpace examined = this.getLocation(f,c,r);
+					int occupado = examined.getOccupiedBy();
+					if (!examined.isOccupied() && occupado != -1) {
+						return ("BoardSpace " + f + c + r + " is showing as unoccupied but occupied by " + GridBrawl.BRWLRS[occupado]);
+					}
+					
+				}
+			}
+		}
+		// check 3: All brawlers that are hands full are registered as possessing a specific treasure, that is on the correct space.
+		for (int p = 0; p < 16; p++) {
+			if (this.getBrawler(p).isHandsFull()) {
+				int loot = this.getBrawler(p).getPossession();
+				int lootLoc = this.getBrawler(loot).getLoc();
+				int posLoc = this.getBrawler(p).getLoc();
+				if (lootLoc != posLoc) {
+					return (GridBrawl.BRWLRS[p] + " on space " + posLoc + " possesses treasure " + loot + " which is on space " + lootLoc);
+				}
+			}
+		}
+		return "OK";
+	}
+	
+	
 	/**
 	 * return values:
 	 * 0: no win condition
@@ -510,10 +575,13 @@ public class AInode {
 				this.getBrawler(b).setHandsFull(false);
 			}
 		}
-		this.getBrawler(treasureID).setOnBoard(false);
-		this.getBrawler(treasureID).setFloor(0);
-		this.getBrawler(treasureID).setColumn(0);
-		this.getBrawler(treasureID).setRow(0);
+		// using the if statement here is a patch: if treasureID == -1 it was passed in erroneously
+		if (treasureID != -1) {
+			this.getBrawler(treasureID).setOnBoard(false);
+			this.getBrawler(treasureID).setFloor(0);
+			this.getBrawler(treasureID).setColumn(0);
+			this.getBrawler(treasureID).setRow(0);
+		}	
 	}
 	
 	public boolean canRedPlace() 			{ return this.redCanPlace; }
@@ -524,8 +592,8 @@ public class AInode {
 	public int getBlueLU() 					{ return this.blueLastUsed; }
 	public double getAdvantage() 			{ return this.advantage; }
 	public BoardSpace[][][] getBoard() 		{ return this.gameBoard; }
-	public int[] getPlayground(int index) 	{ return this.playgrounds[index]; }
-	public int[][] getPlaygrounds() 		{ return this.playgrounds; }
+	// public int[] getPlayground(int index) 	{ return this.playgrounds[index]; }
+	// public int[][] getPlaygrounds() 		{ return this.playgrounds; }
 	public BoardSpace getLocation(int locID) {
 		int[] a = GridBrawl.splitBoardSpace(locID);
 		return this.gameBoard[a[0]][a[1]][a[2]];
@@ -609,16 +677,39 @@ public class AInode {
 		this.getBrawler(id).setRow(fcr[2]);
 		this.getLocation(loc).setOccupied(true);
 		this.getLocation(loc).setOccupiedBy(id);
+		if (this.getBrawler(id).isHandsFull()) { // move treasure also
+			int loot = this.getBrawler(id).getPossession();
+			try {
+				this.getBrawler(loot).setFloor(fcr[0]);
+				this.getBrawler(loot).setColumn(fcr[1]);
+				this.getBrawler(loot).setRow(fcr[2]);
+			} catch(ArrayIndexOutOfBoundsException ex) {
+				System.out.println("AInode.moveBrawler() tried to move a -1 possession for id" + id);
+			}
+		}
 		if (this.getBrawler(id) instanceof Ghost) this.addGhostEffect(fcr[0], fcr[1], fcr[2]);
 		else if (this.getBrawler(id) instanceof Leper) this.addLeperOrSentinelEffect(fcr[0], 'L');
 		else if (this.getBrawler(id) instanceof Sentinel) this.addLeperOrSentinelEffect(fcr[0], 'S');
 		if (this.getBrawler(id) instanceof Mage && this.getLocation(loc).isGhostEffect()) {
 			this.getBrawler("Ghost").remove();
-			int ringID = this.getBrawler("Ring").getPieceID();
-			this.dispossess(ringID);
-			this.takePossession(id, ringID);
+			if (!this.getBrawler(id).isHandsFull()) {
+				int ringID = this.getBrawler("Ring").getPieceID();
+				this.dispossess(ringID);
+				this.takePossession(id, ringID);
+			}
 		}
 		this.updateStatusArray();
+	}
+	
+	// this method is mainly for test purposes
+	public void quickPlacement(int id, int loc) {
+		int[] fcr = GridBrawl.splitBoardSpace(loc);
+		this.getBrawler(id).setOnBoard(true);
+		this.getBrawler(id).setFloor(fcr[0]);
+		this.getBrawler(id).setColumn(fcr[1]);
+		this.getBrawler(id).setRow(fcr[2]);
+		this.getLocation(loc).setOccupied(true);
+		this.getLocation(loc).setOccupiedBy(id);
 	}
 	
 	// this method retrieved from http://www.programcreek.com/2012/11/quicksort-array-in-java/
@@ -732,20 +823,10 @@ public class AInode {
 	}
 	
 	public void scoreMyself(ScoringProfile prof) {
-		Scoring scorer = new Scoring(this, prof);
+		Scoring scorer = new Scoring(this.toString(), prof);
 		if (this.round < 11) this.setScores(scorer.squareOffScore());
 		else this.setScores(scorer.brawlScore());
 		this.setAdvantage(scorer.calculateAdvantage(this.getScores()));
-	}
-	
-	public void takePossession(int taker, int loot) {
-		this.dispossess(loot);
-		this.getBrawler(taker).setHandsFull(true);
-		this.getBrawler(taker).setPossession(loot);
-		this.getBrawler(loot).setOnBoard(true);
-		this.getBrawler(loot).setFloor(this.getBrawler(taker).getFloor());
-		this.getBrawler(loot).setColumn(this.getBrawler(taker).getColumn());
-		this.getBrawler(loot).setRow(this.getBrawler(taker).getRow());
 	}
 	
 	public void resetToBlank() {
@@ -759,6 +840,9 @@ public class AInode {
 				",0,0,0,0,0,0,0,21,F,F,F,F,F,F,F,0,0,0,0,0,0,0,22,F,F,F,F,F,F,F,0,0,0,0,0,0,0,23,F,F,F,F,F,F,F,0,0,0,0,0,0,0,";
 		this.setToString(blank);
 	}
+	
+	public void resetBrawlers() { this.brawlers = GameData.makeSetOfPieces(); }
+	public void resetGameBoard() { this.gameBoard = GameData.makeBoard(); }
 	
 	public void setAdvantage(double adv) { this.advantage = adv; }
 	public void setBoardSpace(BoardSpace setMe, int floor, int column, int row) { this.gameBoard[floor][column][row] = setMe; }
@@ -774,17 +858,18 @@ public class AInode {
 	public void addToBlueScore(int add) { this.scores[1] += add; }
 	public void setBlrStatus(int index, String blr) { this.blrStatuses[index] = blr; }
 	public void setAllBlrStatuses(String[] blrs) { this.blrStatuses = blrs; }
+	// public void setPlayground(int id, int[] pg) { this.playgrounds[id] = pg; }
 	
-	public void setPlaygrounds() {
-		for (int i = 0; i < this.brawlers.length; i++) this.playgrounds[i] = this.buildPlayground(i);	
+	private void setPlaygrounds() {
+		for (int i = 0; i < this.getBrawlersLength(); i++) this.playgrounds[i] = this.buildPlayground(i);
 	}
 	
 	// basically is the same as the constructor, but without creating a new AInode object
 	public void setToString(String xyz) {
 		Scanner walter = new Scanner(xyz);
 		walter.useDelimiter(",");
-		this.brawlers = GameData.makeSetOfPieces();
-		this.gameBoard = GameData.makeBoard();
+		this.resetBrawlers();
+		this.resetGameBoard();
 		String ldrRead = "";
 		this.setRound(walter.nextInt());
 		ldrRead = walter.next();
@@ -796,6 +881,7 @@ public class AInode {
 		ldrRead = walter.next();
 		if ("T".equals(ldrRead)) this.setBlueCanPlace(true);
 		else this.setBlueCanPlace(false);
+		
 		this.setRedLU(walter.nextInt());
 		this.setBlueLU(walter.nextInt());
 		int[] skrs = new int[2];
@@ -839,15 +925,21 @@ public class AInode {
 			if (this.getBrawler(b).isOnBoard()) {
 				this.getLocation(fcr[0], fcr[1], fcr[2]).setOccupied(true);
 				this.getLocation(fcr[0], fcr[1], fcr[2]).setOccupiedBy(b);
+				if (this.getBrawler(b) instanceof Treasure) {
+					for (int c = 0; c < this.getBrawlersLength(); c++) {
+						if (this.getBrawler(c).getPossession() == b) this.getLocation(fcr[0], fcr[1], fcr[2]).setOccupiedBy(c);
+					}
+				}
 			}
 			if (this.getBrawler(b) instanceof Ghost) this.addGhostEffect(fcr[0], fcr[1], fcr[2]);
 			if (this.getBrawler(b) instanceof Leper) this.addLeperOrSentinelEffect(fcr[0], 'L');
 			if (this.getBrawler(b) instanceof Sentinel) this.addLeperOrSentinelEffect(fcr[0], 'S');
 		}
-			blrStatuses = new String[brawlers.length];
-			updateStatusArray();
-			playgrounds = new int[(this.brawlers.length)][64];
-			setPlaygrounds();
+			this.blrStatuses = new String[24];
+			this.updateStatusArray();
+			this.playgrounds = new int[24][64];
+			this.setPlaygrounds();
+			this.updateTreasureEffects();
 			walter.close();	
 	}
 	
@@ -855,20 +947,22 @@ public class AInode {
 		if (this.isRedsTurn()) this.setRedsTurn(false);
 		else this.setRedsTurn(true);
 	}
-		
 	
-	// adapted from same method in GameData
-	// generate a 10-digit string that describes the current state of a brawler in a game and save it in GameData's status array
-	public void updateStatusArray() {
-		String build = "";
-		for (int b = 0; b < brawlers.length; b++) {
-			build = this.getBrawler(b).toString();
-			this.setBlrStatus(b, build);
-		}
+	public void takePossession(int taker, int loot) {
+		this.dispossess(loot);
+		this.getBrawler(taker).setHandsFull(true);
+		this.getBrawler(taker).setPossession(loot);
+		this.getBrawler(loot).setOnBoard(true);
+		this.getBrawler(loot).setFloor(this.getBrawler(taker).getFloor());
+		this.getBrawler(loot).setColumn(this.getBrawler(taker).getColumn());
+		this.getBrawler(loot).setRow(this.getBrawler(taker).getRow());
+		int loc = this.getBrawler(taker).getLoc();
+		this.getLocation(loc).setOccupiedBy(taker);
 	}
 	
 	// format of saveData String: game names, gameRound, who's turn, red/blue CanPlace, red/blue lastused , status of all 24 pieces
 	public String toString() {
+		this.updateStatusArray();
 		String saveData = this.getRound() + ",";
 		if (this.isRedsTurn()) saveData += "T,";
 		else saveData += "F,";
@@ -885,5 +979,29 @@ public class AInode {
 		for (int i = 0; i < this.brawlers.length; i++) saveData += this.getBlrStatus(i) + ",";
 		return saveData;	
 	}	
+	
+	// adapted from same method in GameData
+	// generate a 10-digit string that describes the current state of a brawler in a game and save it in GameData's status array
+	public void updateStatusArray() {
+		String build = "";
+		for (int b = 0; b < this.getBrawlersLength(); b++) {
+			build = this.getBrawler(b).toString();
+			this.setBlrStatus(b, build);
+		}
+	}	
+	
+	public void updateTreasureEffects() {
+		int swordID = this.getBrawler("Sword").getPieceID();
+		int shieldID = this.getBrawler("Shield").getPieceID();
+		int ringID = this.getBrawler("Ring").getPieceID();
+		for (int i = 0; i < 8; i++) {
+			if (this.getBrawler(i).getPossession() == swordID) this.getBrawler(i).setSwordBonus(1);
+			else this.getBrawler(i).setSwordBonus(0);
+			if (this.getBrawler(i).getPossession() == shieldID) this.getBrawler(i).setShieldBonus(1);
+			else this.getBrawler(i).setShieldBonus(0);
+			if (this.getBrawler(i).getPossession() == ringID || this.getBrawler(i).getLevel() >= 3) this.getBrawler(i).setPoweredUp(true);
+			else this.getBrawler(i).setPoweredUp(false);
+		}
+	}
 	
 } // end of AInode class
