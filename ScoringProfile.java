@@ -59,7 +59,7 @@ public class ScoringProfile {
 			this.brawl[5] = 1;   // pts for each character -> OS treasure
 			this.brawl[6] = 2;   // pts for each character that could purchase from the Merchant
 			this.brawl[7] = 2;   // pts for each character -> SS treasure
-			this.brawl[8] = 1;   // pts for having a character on the glorification space
+			this.brawl[8] = 3;   // pts for having a character on the glorification space, ready to Glorify
 			this.brawl[9] = 2;   // pts for each character -> opponent's character (victim hands free)
 			this.brawl[10] = 1;  // extra pts for each character -> opp's char when victim possesses treasure that is OS for attacker
 			this.brawl[11] = 2; // extra pts for each character -> opp's char when victim possesses treasure that is SS for attacker
@@ -82,4 +82,5 @@ public class ScoringProfile {
 	public int getB(int index) {
 		return this.brawl[index];
 	}
-} // end of ScoringProfile class
+	
+}
