@@ -5,6 +5,7 @@ import javax.swing.JFrame;
  * 	RPG GRID BRAWL
  * 
  * Designed and implemented by Jackson Aaron Kisling
+ * Update for 6/29/15 includes integration with the AI classes.
  * 
  */
 
@@ -30,6 +31,7 @@ public class GridBrawl {
 		"Merchant","Sword","Shield","Ring","Diamond"};
 	
 	public static void main(String[] args) {
+		AIbox boxRed, boxBlue;
 		interact = new Interaction();
 		GameData crtGame = new GameData();
 		flee = new Flee();
@@ -93,11 +95,11 @@ public class GridBrawl {
 		while(winCondition == 0) {
 			crtGame.setSuccessfulTurn(false);
 			if(crtGame.isRedsTurn()) {
-				crtGame.crtPlayerName = crtGame.redPlayerName;
+				crtGame.getConfig().setCrtPlayerName(crtGame.getConfig().getRedPlayerName());
 				interact.tellPlayer(interact.msgBuild(crtGame, 4, 0), false); // "Player " + redPlayerName + ", it is Red's Turn."
 			}
 			else {
-				crtGame.crtPlayerName = crtGame.bluePlayerName;
+				crtGame.getConfig().setCrtPlayerName(crtGame.getConfig().getBluePlayerName());
 				interact.tellPlayer(interact.msgBuild(crtGame, 5, 0), false); // "Player " + bluePlayerName + ", it is Blue's Turn."
 			}
 			interact.tellPlayer(interact.msgBuild(crtGame, 6, 0), false); // "It is round #" + gameRound
@@ -106,12 +108,22 @@ public class GridBrawl {
 			// every round is scored here
 			AInode scoreNode = new AInode(crtGame);
 			ScoringProfile sProf = new ScoringProfile("standard");
-			Scoring scoreKeeper = new Scoring(scoreNode, sProf);
+			Scoring scoreKeeper = new Scoring(scoreNode.toString(), sProf);
 			if (crtGame.getGameRound() <= 10) crtGame.currentScore = scoreKeeper.squareOffScore();
 			else crtGame.currentScore = scoreKeeper.brawlScore();
 			double advantage = scoreKeeper.calculateAdvantage(crtGame.currentScore);
 			interact.tellPlayer(interact.reportScores(crtGame.currentScore, advantage), false);
 			interact.space();
+			if (crtGame.isRedsTurn() && crtGame.getConfig().isAIRed()) {
+				boxRed = new AIbox(crtGame);
+				interact.tellPlayer(boxRed.getDecisionAsSuggestion(), false);
+				interact.space();
+			}
+			if (!crtGame.isRedsTurn() && crtGame.getConfig().isAIBlue()) {
+				boxBlue = new AIbox(crtGame);
+				interact.tellPlayer(boxBlue.getDecisionAsSuggestion(), false);
+				interact.space();
+			}
 			
 			interact.tellPlayer(interact.reportOnPlacementOptions(crtGame), false);
 			if(crtGame.getGameRound() > 1) interact.tellPlayer(interact.reportOnLastUsed(crtGame), false);
@@ -119,7 +131,7 @@ public class GridBrawl {
 			boolean[] playerOptions = optionsAssessor.assessPlayerOptions(crtGame);
 			int optionSelected = interact.OptionSelection(playerOptions);
 			interact.space();
-			/*0: file options: (new game, save game, load game, random game, help, exit game)
+			/*0: file options: (new game, save game, load game, random game, help, AI options, exit game)
 			 *1: place			2: move				3: sack treasure	4: ascend
 			 *5: transfer		6: spend diamond	7: humble			8: ring attack
 			 *9: pickpocket		10: dragon fire		11. game report
@@ -148,7 +160,7 @@ public class GridBrawl {
 					else dtBL = crtGame.getBrawler(rlu).getFloor();
 					if (dtBL == 5) dtBL = 4;  // The ascension space is drawn on the page with BL 4
 					if (dtBL == 0) dtBL = 1; // Sometimes the piece last used is removed, e.g. humbling a CL1 Cleric
-					JFrame frame = new JFrame(crtGame.gameName);
+					JFrame frame = new JFrame(crtGame.getConfig().getGameName());
 					frame.getContentPane().add(new DrawBoard(crtGame, dtBL));
 					frame.pack();
 					frame.setVisible(true);
