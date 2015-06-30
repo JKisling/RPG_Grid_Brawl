@@ -18,7 +18,8 @@ class FileOptionsMenu extends GridBrawl {
 				"4. Generate a random mayhem\n" +
 				"5. Generate a random regular brawl\n" +
 				"6. Get help or consult the rules\n" +
-				"7. Exit game\n\n" + 
+				"7. Change AI options\n" +
+				"8. Exit game\n\n" + 
 				"Your selection: ";
 	}
 		
@@ -57,7 +58,10 @@ class FileOptionsMenu extends GridBrawl {
 			Help help = new Help();
 			help.execute();
 			break;
-		case 7: System.exit(0);
+		case 7: // AI Options submenu
+			crtNew = AIoptionsMenu(crtOld);
+			break;
+		case 8: System.exit(0);
 			break;
 		}	
 		crtNew.setSuccessfulTurn(false); // successfulTurn is only set to true when a player makes a move in the game.
@@ -110,9 +114,9 @@ class FileOptionsMenu extends GridBrawl {
 	public GameData newGame() {
 		GameData crtGame = new GameData();
 		String[] names = interact.getNames();
-		crtGame.gameName = names[0];
-		crtGame.redPlayerName = names[1];
-		crtGame.bluePlayerName = names[2];
+		crtGame.getConfig().setGameName(names[0]);
+		crtGame.getConfig().setRedPlayerName(names[1]);
+		crtGame.getConfig().setBluePlayerName(names[2]);
 		return crtGame;
 	}
 	
@@ -122,9 +126,9 @@ class FileOptionsMenu extends GridBrawl {
 		if (mayhem) randoGame = new GameData(rando);
 		else randoGame = new GameData(0, true);
 		String[] names = interact.getNames();
-		randoGame.gameName = names[0];
-		randoGame.redPlayerName = names[1];
-		randoGame.bluePlayerName = names[2];
+		randoGame.getConfig().setGameName(names[0]);
+		randoGame.getConfig().setRedPlayerName(names[1]);
+		randoGame.getConfig().setBluePlayerName(names[2]);
 		interact.space();
 		if (mayhem) {
 			interact.tellPlayer(1, 3, false); // "The game has been reset to round 11, and all brawlers are on the board..."
@@ -138,7 +142,7 @@ class FileOptionsMenu extends GridBrawl {
 	
 	public static void saveGame(GameData gameToSave) {
 		boolean proceed = false;
-		String saveFile = gameToSave.gameName + ".txt";
+		String saveFile = gameToSave.getConfig().getGameName() + ".txt";
 		String saveData = gameToSave.toString();
 		File fileObject = new File(saveFile);
 		if (fileObject.exists()) {
@@ -166,6 +170,44 @@ class FileOptionsMenu extends GridBrawl {
 	
 	public void setDisplay(String y) {
 		this.display = y;
+	}
+	
+	public static GameData AIoptionsMenu(GameData crt) {
+		String redAIOpt, blueAIOpt;
+		if(crt.getConfig().isAIRed()) redAIOpt = "ON";
+		else redAIOpt = "OFF";
+		if(crt.getConfig().isAIBlue()) blueAIOpt = "ON";
+		else blueAIOpt = "OFF";
+		interact.tellPlayer(interact.reportOnAIOptionMenu(redAIOpt, blueAIOpt), true);
+		int aios = interact.getAIOptionMenuSelection();
+		if (aios == -1) return crt;
+		while (aios != -1) {
+			if (aios == 1) {
+				if(crt.getConfig().isAIRed()) {
+					crt.getConfig().setAIRed(false);
+					redAIOpt = "OFF";
+				}
+				else {
+					crt.getConfig().setAIRed(true);
+					redAIOpt = "ON";
+				}
+			}
+			else if (aios == 2) {
+				if(crt.getConfig().isAIBlue()) {
+					crt.getConfig().setAIBlue(false);
+					blueAIOpt = "OFF";
+				}
+				else {
+					crt.getConfig().setAIBlue(true);
+					blueAIOpt = "ON";
+				}
+			}
+			if (aios != -1) {
+				interact.tellPlayer(interact.reportOnAIOptionMenu(redAIOpt, blueAIOpt), true);
+				aios = interact.getAIOptionMenuSelection();
+			}
+		}
+		return crt;
 	}
 	
 } // end of FileOptionsMenu class
