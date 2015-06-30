@@ -19,7 +19,6 @@ public abstract class Brawler {
 	// remember that pieceID describes the type of brawler, and the slot number in GameData.brawlers[] only coincides
 	// with Brawler.pieceID in the standard set of pieces.
 	
-	
 	public abstract boolean canAttack(Brawler victim);
 	public abstract int getFloor();
 	public abstract int getColumn();
@@ -45,7 +44,6 @@ public abstract class Brawler {
 		if (!this.isOnBoard()) return 0;
 		return ((this.getFloor() * 100) + (this.getColumn() * 10) + this.getRow());
 	}
-	
 	
 	public abstract void setFloor(int x);
 	public abstract void setColumn(int x);
@@ -76,6 +74,8 @@ public abstract class Brawler {
 		this.setUsedLast(false);
 		if (this instanceof Character || this instanceof Monster) this.setLevel(1);
 		if (this.isGlorified()) this.setLevel(4);
+		this.setPossession(-1);
+		this.setHandsFull(false);
 	}
 	
 	public boolean isAdjacentToMe(int f, int c, int r) {
