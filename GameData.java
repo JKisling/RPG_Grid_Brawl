@@ -4,13 +4,14 @@ import java.util.Random;
 
 public class GameData {
 	private boolean redsTurn, redCanPlace, blueCanPlace, successfulTurn;
-	String gameName, redPlayerName, bluePlayerName, crtPlayerName, gameRecord;
+	String gameRecord;
 	private int gameRound, redLastUsed, blueLastUsed, gameID;
 	String[] status = new String[24];
 	int[] currentScore;
 	Random randy;
 	private Brawler[] brawlers;
 	private BoardSpace[][][] gameBoard;
+	private Config config;
 	
 	public GameData() {
 		this.gameRound = 1;
@@ -26,6 +27,7 @@ public class GameData {
 		this.status = new String[this.brawlers.length];
 		this.currentScore = new int[2];
 		this.updateStatusArray();
+		this.config = new Config();
 	}
 	
 	// alternate constructor that takes a "saveData" string as an argument and builds a GameData object from a saved game
@@ -34,11 +36,12 @@ public class GameData {
 		ldr.useDelimiter(",");
 		this.brawlers = makeSetOfPieces();
 		this.gameBoard = makeBoard();
+		this.config = new Config();
 		String ldrRead = "";
 		// start with game name and then player names
-		this.gameName = ldr.next();
-		this.redPlayerName = ldr.next();
-		this.bluePlayerName = ldr.next();
+		this.getConfig().setGameName(ldr.next());
+		this.getConfig().setRedPlayerName(ldr.next());
+		this.getConfig().setBluePlayerName(ldr.next());
 		this.gameRound = ldr.nextInt();
 		ldrRead = ldr.next();
 		if ("T".equals(ldrRead)) this.redsTurn = true;
@@ -109,6 +112,7 @@ public class GameData {
 		this.gameBoard = makeBoard();
 		this.brawlers[0].setUsedLast(true); // Warriors are arbitrarily set as last used
 		this.brawlers[4].setUsedLast(true);
+		this.config = new Config();
 		randy = new Random();
 		int redLevels = 10;
 		int blueLevels = 10;
@@ -158,10 +162,13 @@ public class GameData {
 		successfulTurn = false;
 		redLastUsed = 0;
 		blueLastUsed = 4;
+		redCanPlace = false;
+		blueCanPlace = false;
 		brawlers = makeSetOfPieces();
 		gameBoard = makeBoard();
 		brawlers[0].setUsedLast(true);
 		brawlers[4].setUsedLast(true);
+		config = new Config();
 		randy = new Random();
 		boolean success = false;
 		brawlers[16].setOnBoard(true); // place the princess on the throne
@@ -482,30 +489,18 @@ public class GameData {
 		this.getBrawler(treasureID).remove();
 	}
 	
-	public boolean isRedsTurn() {return this.redsTurn;}
-	public boolean isBluesTurn() {return !(this.redsTurn);}
-	public void setRedsTurn(boolean a) {this.redsTurn = a;}
-	public boolean canRedPlace() {return this.redCanPlace;}
-	public void setRedCanPlace(boolean b) {this.redCanPlace = b;}
-	public boolean canBluePlace() {return this.blueCanPlace;}
-	public void setBlueCanPlace(boolean c) {this.blueCanPlace = c;}
-	public boolean isSuccessfulTurn() {return this.successfulTurn;}
-	public void setSuccessfulTurn(boolean d) {this.successfulTurn = d;}
-	public int getGameRound() {return this.gameRound;}
-	public void setGameRound(int f) {this.gameRound = f;}
-	public int getRedLastUsed() {return this.redLastUsed;}
-	public void setRedLastUsed(int g) {this.redLastUsed = g;}
-	public int getBlueLastUsed() {return this.blueLastUsed;}
-	public void setBlueLastUsed(int h) {this.blueLastUsed = h;}
-	public int getGameID() {return this.gameID;}
-	public void setGameID(int h) {this.gameID = h;}
-	public Brawler[] getAllBrawlers() {return this.brawlers;}
-	public void setAllBrawlers(Brawler[] j) {this.brawlers = j;}
-	public Brawler getBrawler(int id) {return this.brawlers[id];}
-	public void setBrawler(Brawler k, int id) {this.brawlers[id] = k;}
-	public BoardSpace[][][] getGameBoard() {return this.gameBoard;}
-	public void setGameBoard(BoardSpace[][][] l) {this.gameBoard = l;}
-	public BoardSpace getLocation(int fcr) {
+	public boolean canRedPlace() 			{ return this.redCanPlace; }
+	public boolean canBluePlace() 			{ return this.blueCanPlace; }
+	public boolean isRedsTurn() 			{ return this.redsTurn; }
+	public Config getConfig()				{ return this.config; }
+	public int getGameRound() 				{ return this.gameRound; }
+	public int getRedLastUsed() 			{ return this.redLastUsed; }
+	public int getBlueLastUsed() 			{ return this.blueLastUsed; }
+	public int getGameID() 					{ return this.gameID; }
+	public Brawler[] getAllBrawlers() 		{ return this.brawlers; }
+	public Brawler getBrawler(int id) 		{ return this.brawlers[id]; }
+	public BoardSpace[][][] getGameBoard() 	{ return this.gameBoard; }
+	public BoardSpace getLocation(int fcr) 	{
 		int[] answer = new int[3];
 		int x = fcr;
 		answer[2] = x % 10;
@@ -515,8 +510,23 @@ public class GameData {
 		answer[0] = x % 10;
 		return this.gameBoard[answer[0]][answer[1]][answer[2]];
 	}
+	public BoardSpace getLocation(int f, int c, int r) {return this.gameBoard[f][c][r];}
+	public boolean isBluesTurn() 			{ return !(this.redsTurn); }
+	public boolean isSuccessfulTurn() 		{ return this.successfulTurn; }
 	
-	public void setLocation(BoardSpace m, int fcr) {
+	
+	public void setRedsTurn(boolean a) 				{ this.redsTurn = a; }
+	public void setRedCanPlace(boolean b) 			{ this.redCanPlace = b; }
+	public void setBlueCanPlace(boolean c) 			{ this.blueCanPlace = c; }
+	public void setSuccessfulTurn(boolean d) 		{ this.successfulTurn = d; }
+	public void setGameRound(int f) 				{ this.gameRound = f; }
+	public void setRedLastUsed(int g) 				{ this.redLastUsed = g; }
+	public void setBlueLastUsed(int h) 				{ this.blueLastUsed = h; }
+	public void setGameID(int h) 					{ this.gameID = h; }
+	public void setAllBrawlers(Brawler[] j) 		{ this.brawlers = j; }
+	public void setBrawler(Brawler k, int id) 		{ this.brawlers[id] = k; }
+	public void setGameBoard(BoardSpace[][][] l) 	{ this.gameBoard = l; }
+	public void setLocation(BoardSpace m, int fcr) 	{
 		int[] answer = new int[3];
 		int x = fcr;
 		answer[2] = x % 10;
@@ -526,7 +536,6 @@ public class GameData {
 		answer[0] = x % 10;
 		this.gameBoard[answer[0]][answer[1]][answer[2]] = m;
 	}
-	public BoardSpace getLocation(int f, int c, int r) {return this.gameBoard[f][c][r];}
 	public void setLocation(BoardSpace n, int f, int c, int r) {this.gameBoard[f][c][r] = n;}
 	
 	
@@ -576,6 +585,17 @@ public class GameData {
 		Diamond  diamond	 = new Diamond();			freshSet[23] = diamond;
 		return freshSet;
 	}
+	
+	// this method is mainly for test purposes
+	public void quickPlacement(int id, int loc) {
+		int[] fcr = GridBrawl.splitBoardSpace(loc);
+		this.getBrawler(id).setOnBoard(true);
+		this.getBrawler(id).setFloor(fcr[0]);
+		this.getBrawler(id).setColumn(fcr[1]);
+		this.getBrawler(id).setRow(fcr[2]);
+		this.getLocation(loc).setOccupied(true);
+		this.getLocation(loc).setOccupiedBy(id);
+	}	
 	
 	// this method retrieved from http://www.programcreek.com/2012/11/quicksort-array-in-java/
 	// it's only used (so far) by buildPlayground()
@@ -627,9 +647,9 @@ public class GameData {
 	// overrides toString() in order to convert a GameData object into a readable string
 	// format of saveData String: game names, gameRound, who's turn, red/blue CanPlace, red/blue lastused , status of all 24 pieces
 	public String toString() {
-		String saveData = this.gameName + ",";
-		saveData += this.redPlayerName + ",";
-		saveData += this.bluePlayerName + ",";
+		String saveData = this.getConfig().getGameName() + ",";
+		saveData += this.getConfig().getRedPlayerName() + ",";
+		saveData += this.getConfig().getBluePlayerName() + ",";
 		saveData += this.gameRound + ",";
 		if (this.redsTurn) saveData += "T,";
 		else saveData += "F,";
