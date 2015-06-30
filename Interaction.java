@@ -157,6 +157,14 @@ class Interaction extends GridBrawl {
 		return report;
 	}
 	
+	public int getAIOptionMenuSelection() {
+		int aios = -1;
+		aios = this.getIntOrNothing();
+		if (aios == 1) return 1;
+		else if (aios == 2) return 2;
+		else return -1;
+	}
+	
 	public int getBrawlerNumber(int setlength) {
 		int bn = -1;
 		String bns = this.bob.next();
@@ -180,7 +188,7 @@ class Interaction extends GridBrawl {
 		if (!isNumeric(bns)) return 0;
 		else {
 			bn = Integer.parseInt(bns);
-			if (bn <= 0 || bn > 6) return 0;
+			if (bn <= 0 || bn > 7) return 0;
 		}
 		return bn;
 	}
@@ -332,17 +340,17 @@ class Interaction extends GridBrawl {
 	public String msgBuild(GameData crt, int mb, int passIn) {
 		String t = "";
 		switch (mb) {
-		case 0: t = "Game " + crt.gameName + " has been created.";										break; // GridBrawl.main
-		case 1: t = crt.redPlayerName + " will take the first turn as the red player.";					break; // GridBrawl.main
-		case 2: t = "Game " + crt.gameName + " has been loaded.";										break; // GridBrawl.main
-		case 3: t = "Game will begin on round #" + crt.getGameRound() + ".";								break; // GridBrawl.main
-		case 4: t = "Player " + crt.redPlayerName + ", it is Red's Turn.";								break; // GridBrawl.main
-		case 5: t = "Player " + crt.bluePlayerName + ", it is Blue's Turn.";								break; // GridBrawl.main
-		case 6: t = "It is round #" + crt.getGameRound();														break; // GridBrawl.main
-		case 7: t = "You have selected " + BRWLRS[passIn] + ".";											break; // Interact.placeGetPSelect()
-		case 8: t = "That space is already occupied by the " + BRWLRS[passIn] + ".";						break; // Interact.placeGetSpace() & Place.dragonPrincess()
+		case 0: t = "Game " + crt.getConfig().getGameName() + " has been created.";						break; // GridBrawl.main()
+		case 1: t = crt.getConfig().getRedPlayerName() + " will take the first turn as the red player.";break; // GridBrawl.main()
+		case 2: t = "Game " + crt.getConfig().getGameName() + " has been loaded.";						break; // GridBrawl.main()
+		case 3: t = "Game will begin on round #" + crt.getGameRound() + ".";							break; // GridBrawl.main()
+		case 4: t = "Player " + crt.getConfig().getRedPlayerName() + ", it is Red's Turn.";				break; // GridBrawl.main()
+		case 5: t = "Player " + crt.getConfig().getBluePlayerName() + ", it is Blue's Turn.";			break; // GridBrawl.main
+		case 6: t = "It is round #" + crt.getGameRound();												break; // GridBrawl.main
+		case 7: t = "You have selected " + BRWLRS[passIn] + ".";										break; // Interact.placeGetPSelect()
+		case 8: t = "That space is already occupied by the " + BRWLRS[passIn] + ".";					break; // Interact.placeGetSpace() & Place.dragonPrincess()
 		case 9: t = "When you place that piece you must also place the " + BRWLRS[passIn] + "."; 		break; // Place.dragonPrincess()
-		case 10:t = "Player " + crt.crtPlayerName + ", these pieces are available to move this turn:";	break; // Move.execute
+		case 10:t = "Player " + crt.getConfig().getCrtPlayerName() + ", these pieces are available to move this turn:";	break; // Move.execute()
 		case 11:t = "The " + BRWLRS[passIn] + " cannot move up or down this turn because the Sentinel is on the same level.";
 			break; 																								   // Interact.moveILDErrorMsg
 		case 12:t = "That space cannot be reached by the " + BRWLRS[passIn] + " this turn."; 			break; // Interact.moveILDErrorMsg
@@ -351,11 +359,11 @@ class Interaction extends GridBrawl {
 		case 14:t = "Please select a new destination for the " + BRWLRS[passIn] + ".";					break; // Move.execute()
 		case 15:t = "The destination space is occupied by the " + BRWLRS[passIn] + ".";					break; // Move.execute()
 		case 16:t = "The Abyss has swallowed up the " + BRWLRS[passIn] + "...";							break; // Move.finishMoveTurn()
-		case 17:t = "You are about to perform the ritual of Glorification on the " + BRWLRS[passIn] + "!";	break; // Glorification.executeAscension()
-		case 18:t = "The " + BRWLRS[passIn] + " has left the board!";									break; // Glorification.executeAscension()
-		case 19:t = "The " + BRWLRS[passIn] + " has returned to the pool.";								break; // Glorification.executeAscension()
-		case 20:t = "You may sacrifice the " + BRWLRS[passIn] + ".";										break; // Glorification.executeSacrifice()
-		case 21:t = "The " + BRWLRS[passIn] + " has been bumped off of the board!";						break; // Move.performBumpDwns() & Ascension.executeSacrifice
+		case 17:t = "You are about to perform the ritual of Glorification on the " + BRWLRS[passIn] + "!";	break; // Glorification.executeGlorification()
+		case 18:t = "The " + BRWLRS[passIn] + " has left the board!";									break; // Glorification.executeGlorification()
+		case 19:t = "The " + BRWLRS[passIn] + " has returned to the pool.";								break; // Glorification.executeGlorification()
+		case 20:t = "You may sacrifice the " + BRWLRS[passIn] + ".";									break; // Glorification.executeSacrifice()
+		case 21:t = "The " + BRWLRS[passIn] + " has been bumped off of the board!";						break; // Move.performBumpDwns() & Glorification.executeSacrifice()
 		case 22:t = "You have selected to perform the ritual of sword sacrifice against the " + BRWLRS[passIn]; // Glorification.executeSacrifice()
 			break; 																								   
 		case 23:t = "You have selected to perform the ritual of shield sacrifice on the " + BRWLRS[passIn];	   // Glorification.executeSacrifice()
@@ -368,20 +376,21 @@ class Interaction extends GridBrawl {
 		case 28:t = "The Dragon burns the " + BRWLRS[passIn] + " with its firey breath!";				break; // Fireball.burn()
 		case 29:t = "You have selected to have your Mage hurl a fireball at the " + BRWLRS[passIn] + ".";break; // Fireball.burn()
 		case 30:t = "The Red Mage casts a fire spell, burning the " + BRWLRS[passIn] + "!";				break; 	// Fireball.burn()
-		case 31:t = "The Blue Mage casts a fire spell, burning the " + BRWLRS[passIn] + "!";				break; // Fireball.burn()
+		case 31:t = "The Blue Mage casts a fire spell, burning the " + BRWLRS[passIn] + "!";			break; // Fireball.burn()
 		case 32:t = "You have selected to bribe the " + BRWLRS[passIn] + " into moving to a new space.";	break; // Spend.execute()
 		case 33:t = "The " + BRWLRS[passIn] + " may purchase a Treasure from the Merchant.";				break; // Spend.execute()
 		case 34:t = "There are no available Treasures for the " + BRWLRS[passIn] + " to take on that level";    // Spend.execute()
 			break;	
 		case 35:t = "It is the top of round " + crt.getGameRound();	break;										   // GridBrawl.endGame()
 		case 36:t = "It is the bottom of round " + crt.getGameRound();	break;									   // GridBrawl.endGame()
-		case 37:t = "Game " + crt.gameName + " is over.  Red wins up!  Congratulations, " + crt.redPlayerName + "!";  	// GridBrawl.endGame()
-			break;
-		case 38:t = "Game " + crt.gameName + " is over.  Blue wins up!  Congratulations, " + crt.bluePlayerName + "!";	// GridBrawl.endGame()
-			break;
-		case 39:t = "Game " + crt.gameName + " is over.  Red wins down!  Congratulations, " + crt.redPlayerName + "!";   // GridBrawl.endGame()
-			break;
-		case 40:t = "Game " + crt.gameName + " is over.  Blue wins down!  Congratulations, " + crt.bluePlayerName + "!"; // GridBrawl.endGame()
+		case 37:t = "Game " + crt.getConfig().getGameName() + " is over.  Red wins up!  Congratulations, "
+					+ crt.getConfig().getRedPlayerName() + "!";  										break;	// GridBrawl.endGame()
+		case 38:t = "Game " + crt.getConfig().getGameName() + " is over.  Blue wins up!  Congratulations, "
+					+ crt.getConfig().getBluePlayerName() + "!"; 										break;	// GridBrawl.endGame()
+		case 39:t = "Game " + crt.getConfig().getGameName() + " is over.  Red wins down!  Congratulations, "
+					+ crt.getConfig().getRedPlayerName() + "!"; 										break;  // GridBrawl.endGame()
+		case 40:t = "Game " + crt.getConfig().getGameName() + " is over.  Blue wins down!  Congratulations, "
+					+ crt.getConfig().getBluePlayerName() + "!"; 										break;  // GridBrawl.endGame()
 		case 41:t = "The " + BRWLRS[passIn] + " gains no level because the Leper is on the same floor."; break;			// Move.finishMoveTurn()
 		case 42:t = "The Vampire has sucked an additional character level out of the " + BRWLRS[passIn] + "!"; break;	// Move.finishMoveTurn()
 		case 43:t = "The Vampire bites, and the bloodless husk of the " + BRWLRS[passIn] + " is tossed off of the board!"; // Move.finishMoveTurn()
@@ -572,14 +581,24 @@ class Interaction extends GridBrawl {
 		return report;
 	}
 	
+	public String reportOnAIOptionMenu(String red, String blue) {
+		String report = "";
+		report += ("Please select from the following options: \n");
+		report +=("1. toggle AI suggestions for red (currently set to " + red + ")\n");
+		report +=("2. toggle AI suggestions for blue (currently set to " + blue + ")\n");
+		report +=("3. return to previous menu:\n\n");
+		report +=("Enter your selection: ");
+		return report;
+	}
+	
 	public String reportOnAISelection(AIresult AIr) {
 		report = "";
 		if (AIr.getID() == -1) return "Do nothing";
 		switch (AIr.getAction()) {
 		case 1: report = "Place the " + BRWLRS[AIr.getID()] + " on space #" + AIr.getIdealPlace() + ".";	break;
 		case 2: report = "Move the " + BRWLRS[AIr.getID()] + " to space #" + AIr.getIdealPlace() + ".";		break;
-		case 3: report = "Use the " + BRWLRS[AIr.getID()] + " to attack the " + 
-				BRWLRS[AIr.getSecondaryTarget()] + " on space #" + AIr.getIdealPlace() + ".";				break;
+		case 3: report = "Attack the " + BRWLRS[AIr.getSecondaryTarget()] + " on space " + AIr.getIdealPlace()
+				+ " using the " + BRWLRS[AIr.getID()] + ".";												break;
 		case 4: report = "Shoot a fireball at the " + BRWLRS[AIr.getSecondaryTarget()] + ".";				break;
 		case 5: report = "Have the " + BRWLRS[AIr.getID()] + " flee from the brawl";						break;
 		case 6: report = "Glorify the " + BRWLRS[AIr.getID()] + ".";										break;
