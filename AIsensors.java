@@ -11,6 +11,7 @@ public class AIsensors {
 	private final AInode gameNode;
 	final String gNode;
 	final ScoringProfile sProf;
+	final double[][] preC, postC;
 	static final AIhands hands = new AIhands();
 	double inFavor, against, chkAdv;
 	static Scoring scorer;
@@ -19,7 +20,26 @@ public class AIsensors {
 		this.gameNode = new AInode(nodeString);
 		// speculator = new AInode(gameNode.toString());
 		this.gNode = this.gameNode.toString();
-		this.sProf = new ScoringProfile("standard"); // eventually build this out to incorporate other Scoring Profiles
+		this.sProf = new ScoringProfile("standard");
+		preC = this.sProf.getConPro().getWholePre();
+		postC = this.sProf.getConPro().getWholePost();
+		scorer = new Scoring(this.gNode, this.sProf);
+		this.inFavor = 1;
+		this.against = -1;
+		this.chkAdv = 0;
+		if (!gameNode.isRedsTurn()) {
+			this.inFavor = -1;	this.against = 1;
+		}
+	}
+	
+	// this constructor is used for non-standard ScoringProfile objects
+	public AIsensors(String nodeString, String profile) {
+		this.gameNode = new AInode(nodeString);
+		// speculator = new AInode(gameNode.toString());
+		this.gNode = this.gameNode.toString();
+		this.sProf = new ScoringProfile(profile);
+		preC = this.sProf.getConPro().getWholePre();
+		postC = this.sProf.getConPro().getWholePost();
 		scorer = new Scoring(this.gNode, this.sProf);
 		this.inFavor = 1;
 		this.against = -1;
@@ -45,7 +65,7 @@ public class AIsensors {
 		if (whatAmI instanceof Ghost) result = this.bestAction_Ghost(id, redsTurn);
 		if (whatAmI instanceof Merchant) result = this.bestAction_Merchant(id, redsTurn);
 		if (whatAmI instanceof Treasure) result = this.bestAction_Treasure(id, redsTurn);
-		// speculator.setToString(gNode);
+		if (result.getAction() != 0) result.turnOn();
 		return result;
 	}
 	
@@ -67,28 +87,28 @@ public class AIsensors {
 		
 		if (!warrior.isOnBoard()){ // we can only place
 			int[] legitSpaces = this.getAllLegitPlacementTargets(id);
-			for (int u = 3; u > 0; u--) if (onBoardCount[0] < u) preAdjust += (0.1 * inFavor); // place it if you have <3 characters on board
-			preAdjust += (0.15 * onBoardCount[1] * inFavor); // better to place if opponent has more characters on board
+			for (int u = 3; u > 0; u--) if (onBoardCount[0] < u) preAdjust += (preC[0][0] * inFavor); // place it if you have <3 characters on board
+			preAdjust += (preC[0][1] * onBoardCount[1] * inFavor); // better to place if opponent has more characters on board
 			// other preAdjustments go here
 			
 			for (int w = 0; w < legitSpaces.length; w++) {
 				chkSpc = legitSpaces[w];
 				fcr = splitBoardSpace(chkSpc);
 				// This is a Character, so it's better not to place it out on the "frontier" on floor 1
-				if (fcr[1] == 4 || fcr[2] == 4) postAdjust += (.75 * against);
+				if (fcr[1] == 4 || fcr[2] == 4) postAdjust += (postC[0][0] * against);
 				// put the Warrior closer to the center of the board
 				if (fcr[1] != 0 && fcr[1] != 4 && fcr[2] != 0 && fcr[2] != 4) {
-					postAdjust += (0.1 * inFavor);
-					if (fcr[1] == 2) postAdjust += (0.1 * inFavor);
-					if (fcr[2] == 2) postAdjust += (0.1 * inFavor);
+					postAdjust += (postC[0][1] * inFavor);
+					if (fcr[1] == 2) postAdjust += (postC[0][1] * inFavor);
+					if (fcr[2] == 2) postAdjust += (postC[0][1] * inFavor);
 				}
 				// if Ghost is not on-board, don't place this guy adjacent to another friendly Character
 				if (!ghost.isOnBoard()) {
-					if (myCleric.isAdjacentToMe(fcr[0], fcr[1], fcr[2])) postAdjust += (1 * against);
-					if (myMage.isAdjacentToMe(fcr[0], fcr[1], fcr[2])) postAdjust += (1 * against);
-					if (myRogue.isAdjacentToMe(fcr[0], fcr[1], fcr[2])) postAdjust += (1 * against);
+					if (myCleric.isAdjacentToMe(fcr[0], fcr[1], fcr[2])) postAdjust += (postC[0][2] * against);
+					if (myMage.isAdjacentToMe(fcr[0], fcr[1], fcr[2])) postAdjust += (postC[0][2] * against);
+					if (myRogue.isAdjacentToMe(fcr[0], fcr[1], fcr[2])) postAdjust += (postC[0][2] * against);
 				}
-				if (gameNode.getRound() > 10 && willIGetMyselfKilledHere(gameNode, chkSpc)) postAdjust += (2 * against);
+				if (gameNode.getRound() > 10 && willIGetMyselfKilledHere(gameNode, chkSpc)) postAdjust += (postC[0][3] * against);
 				// other postAdjustments go here
 				chkAdv = preAdjust + this.getAdvantageFromAction(id, 1, chkSpc, -1) + postAdjust;
 				results.updateMyself(id, 1, legitSpaces[w], -1, chkAdv, redsTurn);
@@ -106,12 +126,12 @@ public class AIsensors {
 				if ((chkSpc == warrior.getLoc() + 100) && (lazy > 0)) {
 					if (warrior.getFloor() == 1) lazy *= 2;
 					if (warrior.isGlorified()) lazy = 0;
-					postAdjust = (lazy * inFavor);	
+					postAdjust = (postC[0][4] * lazy * inFavor);	
 				}
 				
-				// postAdjust: Moving into the Glory corridor is encouraged when lvl == 4
-				if ((chkSpc % 100 == 0) && (gameNode.getBrawler(id).getLevel() == 4)) {
-					postAdjust = (5 * inFavor);
+				// postAdjust: Moving into the Glory corridor is encouraged when lvl == 4 and unglorified
+				if ((chkSpc % 100 == 0) && (warrior.getLevel() == 4) && !warrior.isGlorified()) {
+					postAdjust = (postC[0][5] * inFavor);
 				}
 				chkAdv = preAdjust + this.getAdvantageFromAction(id, 2, chkSpc, -1) + postAdjust;
 				results.updateMyself(id, 2, chkSpc, -1, chkAdv, redsTurn);
@@ -120,7 +140,7 @@ public class AIsensors {
 			
 			// attack
 			// preAdjust: attacking generally a good plan for Characters
-			preAdjust = (3 * inFavor);
+			preAdjust = (preC[0][2] * inFavor);
 			int[] targets = this.sortPlaygroundForAttack(gameNode, warPG, id);
 			if (targets.length > 0) {
 				for (int att = 0; att < targets.length; att++) {
@@ -129,7 +149,7 @@ public class AIsensors {
 					// postadjust: The "Must Kill" rule: If opponent only has 1 onboard Character and it can be attacked, it must be.
 					int[] cob = this.countOnBoardCharacters(redsTurn);
 					if (cob[1] == 1 && gameNode.getBrawler(victim) instanceof Character) {
-						return new AIresult(id, 3, chkSpc, victim, (1000 * inFavor), redsTurn); // If you don't do this, you're just being a dick.
+						return new AIresult(id, 3, chkSpc, victim, (postC[0][6] * inFavor), redsTurn); // If you don't do this, you're just being a dick.
 					}
 					chkAdv = preAdjust + this.getAdvantageFromAction(id, 3, chkSpc, victim) + postAdjust;
 					results.updateMyself(id, 3, chkSpc, victim, chkAdv, redsTurn);
@@ -140,21 +160,34 @@ public class AIsensors {
 			// glorify
 			if (warrior.getLevel() == 4 && warrior.getFloor() == 5 && !warrior.isGlorified()) {
 				// preAdjust: if you can do this, it's the best thing you can do.
-				// preAdjust: However!  If you have no other Characters on the Board you CANNOT do this.
+				// preAdjust: However!  If you have no other Characters on the Board you CANNOT do this. (results not updated)
 				int[] cob = this.countOnBoardCharacters(redsTurn);
 				if (cob[0] > 1) {
-					return new AIresult(id, 6, 500, -1, (1000 * inFavor), redsTurn);
+					return new AIresult(id, 6, 500, -1, (preC[0][3] * inFavor), redsTurn);
 				}
 			}				
 			
 			// purchase
 			if (warrior.getPossession() == gameNode.getBrawler("Diamond").getPieceID() && 
 					warrior.getFloor() == gameNode.getBrawler("Merchant").getFloor()) {
+				// preAdjust: if the Sword is possessed by an enemy this is a good idea.
+				int opps = 0;
+				if (redsTurn) opps = 4;
+				boolean swordInEnemyHands = false;
+				for (int x = opps; x < (opps + 4); x++) {
+					if (gameNode.getBrawler(x).getPossession() == 20) {
+						swordInEnemyHands = true;
+						break;
+					}
+				}
+				if (swordInEnemyHands) preAdjust = (preC[0][4] * inFavor);
+				// other preadjustments go here
 				for (int tsr = 20; tsr <= 22; tsr++) {
 					chkAdv = preAdjust + this.getAdvantageFromAction(id, 8, 0, tsr) + postAdjust;
 					results.updateMyself(id, 8, 0, tsr, chkAdv, redsTurn);
 				}
 			}
+			preAdjust = 0;
 			
 			// transfer
 			if (warrior.isHandsFull()) {
@@ -168,7 +201,6 @@ public class AIsensors {
 			// post: attacking is better if you can make a chain bump, but only if your characters are not in the chain.
 			// post: amongst choices of attack targets, choose the biggest threat first
 			// post: moving into line of sight with powered up friendly Cleric is a small bonus.
-			// post: if the warrior is level 2 or higher, moving off the first floor is very good.
 		}
 		return results;
 	}
@@ -192,7 +224,8 @@ public class AIsensors {
 		
 		if (!cleric.isOnBoard()){ // we can only place
 			int[] legitSpaces = this.getAllLegitPlacementTargets(id);
-			for (int u = 3; u > 0; u--) if (onBoardCount[0] < u) preAdjust += (0.1 * inFavor); // place it if you have <3 characters on board
+			for (int u = 3; u > 0; u--) if (onBoardCount[0] < u) preAdjust += (preC[1][0] * inFavor); // place it if you have <3 characters on board
+			preAdjust += (preC[1][1] * onBoardCount[1] * inFavor); // better to place if opponent has more characters on board
 			// other preAdjustments go here
 			
 			for (int w = 0; w < legitSpaces.length; w++) {
@@ -200,17 +233,17 @@ public class AIsensors {
 				int[] fcr = GridBrawl.splitBoardSpace(chkSpc);
 				
 				// This is a Character, so it's better not to place it out on the "frontier" on floor 1
-				if (fcr[1] == 4 || fcr[2] == 4) postAdjust += (.75 * against);
+				if (fcr[1] == 4 || fcr[2] == 4) postAdjust += (postC[1][0] * against);
 				// if space in question is directly underneath the Leper, give an extra small boost
-				if (fcr[0] - 1 == leper.getFloor() && fcr[1] == leper.getColumn() && fcr[2] == leper.getRow()) postAdjust += (1 * inFavor);
+				if (fcr[0] - 1 == leper.getFloor() && fcr[1] == leper.getColumn() && fcr[2] == leper.getRow()) postAdjust += (postC[1][1] * inFavor);
 				
 				// if Ghost is not on-board, don't place this guy adjacent to another friendly Character
 				if (!ghost.isOnBoard()) {
-					if (myWarrior.isAdjacentToMe(fcr[0], fcr[1], fcr[2])) postAdjust += (1 * against);
-					if (myMage.isAdjacentToMe(fcr[0], fcr[1], fcr[2])) postAdjust += (1 * against);
-					if (myRogue.isAdjacentToMe(fcr[0], fcr[1], fcr[2])) postAdjust += (1 * against);
+					if (myWarrior.isAdjacentToMe(fcr[0], fcr[1], fcr[2])) postAdjust += (postC[1][2] * against);
+					if (myMage.isAdjacentToMe(fcr[0], fcr[1], fcr[2])) postAdjust += (postC[1][2] * against);
+					if (myRogue.isAdjacentToMe(fcr[0], fcr[1], fcr[2])) postAdjust += (postC[1][2] * against);
 				}
-				if (gameNode.getRound() > 10 && willIGetMyselfKilledHere(gameNode, chkSpc)) postAdjust += (2 * against);
+				if (gameNode.getRound() > 10 && willIGetMyselfKilledHere(gameNode, chkSpc)) postAdjust += (postC[1][3] * against);
 				// other postAdjustments go here
 				chkAdv = preAdjust + this.getAdvantageFromAction(id, 1, chkSpc, -1) + postAdjust;
 				results.updateMyself(id, 1, legitSpaces[w], -1, chkAdv, redsTurn);
@@ -228,11 +261,11 @@ public class AIsensors {
 				if ((chkSpc == cleric.getLoc() + 100) && (lazy > 0)) {
 					if (cleric.getFloor() == 1) lazy *= 2;
 					if (cleric.isGlorified()) lazy = 0;
-					postAdjust = (lazy * inFavor);	
+					postAdjust = (postC[1][4] * lazy * inFavor);	
 				}
-				// postAdjust: Moving into the Glory corridor is encouraged when lvl == 4
-				if ((chkSpc % 100 == 0) && (gameNode.getBrawler(id).getLevel() == 4)) {
-					postAdjust = (5 * inFavor);
+				// postAdjust: Moving into the Glory corridor is encouraged when lvl == 4 and unglorified
+				if ((chkSpc % 100 == 0) && (cleric.getLevel() == 4) && !cleric.isGlorified()) {
+					postAdjust = (postC[1][5] * inFavor);
 				}
 				
 				chkAdv = preAdjust + this.getAdvantageFromAction(id, 2, chkSpc, -1) + postAdjust;
@@ -242,7 +275,7 @@ public class AIsensors {
 			
 			// attack
 			// preAdjust: attacking generally a good plan for Characters
-			preAdjust = (3 * inFavor);
+			preAdjust = (preC[1][2] * inFavor);
 			int[] targets = this.sortPlaygroundForAttack(gameNode, gameNode.buildPlayground(id), id);
 			if (targets.length > 0) {
 				for (int att = 0; att < targets.length; att++) {
@@ -251,10 +284,10 @@ public class AIsensors {
 					// postadjust: The "Must Kill" rule: If opponent only has 1 onboard Character and it can be attacked, it must be.
 					int[] cob = this.countOnBoardCharacters(redsTurn);
 					if (cob[1] == 1 && gameNode.getBrawler(victim) instanceof Character) {
-						return new AIresult(id, 3, chkSpc, victim, (1000 * inFavor), redsTurn); // If you don't do this, you're just being a dick.
+						return new AIresult(id, 3, chkSpc, victim, (postC[1][6] * inFavor), redsTurn); // If you don't do this, you're just being a dick.
 					}
 					// postAdjust: do let's attack the Leper
-					if (gameNode.getBrawler(victim) instanceof Leper) postAdjust += 3 * inFavor;
+					if (gameNode.getBrawler(victim) instanceof Leper) postAdjust += postC[1][7] * inFavor;
 					chkAdv = preAdjust + this.getAdvantageFromAction(id, 3, chkSpc, victim) + postAdjust;
 					results.updateMyself(id, 3, chkSpc, victim, chkAdv, redsTurn);
 				}
@@ -265,21 +298,33 @@ public class AIsensors {
 			// glorify
 			if (cleric.getLevel() == 4 && cleric.getFloor() == 5 && !cleric.isGlorified()) {
 				// preAdjust: if you can do this, it's the best thing you can do.
-				// preAdjust: However!  If you have no other Characters on the Board you CANNOT do this.
+				// preAdjust: However!  If you have no other Characters on the Board you CANNOT do this. (results not updated)
 				int[] cob = this.countOnBoardCharacters(redsTurn);
 				if (cob[0] > 1) {
-					return new AIresult(id, 6, 500, -1, (1000 * inFavor), redsTurn);
+					return new AIresult(id, 6, 500, -1, (preC[1][3] * inFavor), redsTurn);
 				}
 			}				
 			
 			// purchase
 			if (cleric.getPossession() == gameNode.getBrawler("Diamond").getPieceID() && 
 					cleric.getFloor() == gameNode.getBrawler("Merchant").getFloor()) {
+				// preAdjust: if the Shield is possessed by an enemy this is a good idea.
+				int opps = 0;
+				if (redsTurn) opps = 4;
+				boolean shieldInEnemyHands = false;
+				for (int x = opps; x < (opps + 4); x++) {
+					if (gameNode.getBrawler(x).getPossession() == 21) {
+						shieldInEnemyHands = true;
+						break;
+					}
+				}
+				if (shieldInEnemyHands) preAdjust = (preC[1][4] * inFavor);
 				for (int tsr = 20; tsr <= 22; tsr++) {
 					chkAdv = preAdjust + this.getAdvantageFromAction(id, 8, 0, tsr) + postAdjust;
 					results.updateMyself(id, 8, 0, tsr, chkAdv, redsTurn);
 				}
 			}
+			preAdjust = 0;
 		
 			// transfer
 			if (cleric.isHandsFull()) {
@@ -316,26 +361,27 @@ public class AIsensors {
 		
 		if (!mage.isOnBoard()){ // we can only place
 			int[] legitSpaces = this.getAllLegitPlacementTargets(id);
-			for (int u = 3; u > 0; u--) if (onBoardCount[0] < u) preAdjust += (0.1 * inFavor); // place it if you have <3 characters on board
+			for (int u = 3; u > 0; u--) if (onBoardCount[0] < u) preAdjust += (preC[2][0] * inFavor); // place it if you have <3 characters on board
+			preAdjust += (preC[2][1] * onBoardCount[1] * inFavor); // better to place if opponent has more characters on board
 			// other preAdjustments go here
 			
 			for (int w = 0; w < legitSpaces.length; w++) {
 				chkSpc = legitSpaces[w];
 				int[] fcr = GridBrawl.splitBoardSpace(chkSpc);
 				// This is a Character, so it's better not to place it out on the "frontier" on floor 1
-				if (fcr[1] == 4 || fcr[2] == 4) postAdjust += (.75 * against);
+				if (fcr[1] == 4 || fcr[2] == 4) postAdjust += (postC[2][0] * against);
 				
 				// if Ghost is not on-board, don't place this guy adjacent to another friendly Character
 				if (!ghost.isOnBoard()) {
-					if (myWarrior.isAdjacentToMe(fcr[0], fcr[1], fcr[2])) postAdjust += (1 * against);
-					if (myCleric.isAdjacentToMe(fcr[0], fcr[1], fcr[2])) postAdjust += (1 * against);
-					if (myRogue.isAdjacentToMe(fcr[0], fcr[1], fcr[2])) postAdjust += (1 * against);
+					if (myWarrior.isAdjacentToMe(fcr[0], fcr[1], fcr[2])) postAdjust += (postC[2][2] * against);
+					if (myCleric.isAdjacentToMe(fcr[0], fcr[1], fcr[2])) postAdjust += (postC[2][2] * against);
+					if (myRogue.isAdjacentToMe(fcr[0], fcr[1], fcr[2])) postAdjust += (postC[2][2] * against);
 				}
 				else { // never place a Mage adjacent to the Ghost
 					BoardSpace examined = gameNode.getLocation(chkSpc);
-					if (examined.isGhostEffect()) postAdjust += (5 * against); // really don't do that.
+					if (examined.isGhostEffect()) postAdjust += (postC[2][3] * against); // really don't do that.
 				}
-				if (gameNode.getRound() > 10 && willIGetMyselfKilledHere(gameNode, chkSpc)) postAdjust += (2 * against);
+				if (gameNode.getRound() > 10 && willIGetMyselfKilledHere(gameNode, chkSpc)) postAdjust += (postC[2][4] * against);
 				// other postAdjustments go here
 				
 				chkAdv = preAdjust + this.getAdvantageFromAction(id, 1, chkSpc, -1) + postAdjust;
@@ -354,12 +400,12 @@ public class AIsensors {
 				if ((chkSpc == mage.getLoc() + 100) && (lazy > 0)) {
 					if (mage.getFloor() == 1) lazy *= 2;
 					if (mage.isGlorified()) lazy = 0;
-					postAdjust = (lazy * inFavor);	
+					postAdjust = (postC[2][5] * lazy * inFavor);	
 				}
 				
-				// postAdjust: Moving into the Glory corridor is encouraged when lvl == 4
-				if ((chkSpc % 100 == 0) && (gameNode.getBrawler(id).getLevel() == 4)) {
-					postAdjust = (5 * inFavor);
+				// postAdjust: Moving into the Glory corridor is encouraged when lvl == 4 and unglorified
+				if ((chkSpc % 100 == 0) && (mage.getLevel() == 4) && !mage.isGlorified()) {
+					postAdjust = (postC[2][6] * inFavor);
 				}
 				
 				chkAdv = preAdjust + this.getAdvantageFromAction(id, 2, chkSpc, -1) + postAdjust;
@@ -369,7 +415,7 @@ public class AIsensors {
 			
 			// attack and/or fireball
 			// preAdjust: attacking generally a good plan for Characters
-			preAdjust = (3 * inFavor);
+			preAdjust = (preC[2][2] * inFavor);
 			int[] targets = this.sortPlaygroundForAttack(gameNode, gameNode.buildPlayground(id), id);
 			if (targets.length > 0) {
 				for (int att = 0; att < targets.length; att++) {
@@ -378,7 +424,7 @@ public class AIsensors {
 					// postadjust: The "Must Kill" rule: If opponent only has 1 onboard Character and it can be attacked, it must be.
 					int[] cob = this.countOnBoardCharacters(redsTurn);
 					if (cob[1] == 1 && gameNode.getBrawler(victim) instanceof Character) {
-						return new AIresult(id, 3, chkSpc, victim, (1000 * inFavor), redsTurn); // If you don't do this, you're just being a dick.
+						return new AIresult(id, 3, chkSpc, victim, (postC[2][7] * inFavor), redsTurn); // If you don't do this, you're just being a dick.
 					}
 					chkAdv = preAdjust + this.getAdvantageFromAction(id, 3, chkSpc, victim) + postAdjust;
 					results.updateMyself(id, 3, chkSpc, victim, chkAdv, redsTurn);
@@ -386,6 +432,8 @@ public class AIsensors {
 						LineOfSight los = new LineOfSight();
 						boolean iSeeYou = los.AIcalculate(gameNode, mage, gameNode.getBrawler(victim));
 						if (iSeeYou) {
+							// postAdjust: if potential victim is a Nemesis, fireball that shit.
+							if (gameNode.getBrawler(victim) instanceof Nemesis) postAdjust += (postC[2][8] * inFavor);
 							chkAdv = preAdjust + this.getAdvantageFromAction(id, 4, chkSpc, victim) + postAdjust;
 							results.updateMyself(id, 4, chkSpc, victim, chkAdv, redsTurn);
 						}
@@ -393,20 +441,32 @@ public class AIsensors {
 				}
 			}
 			preAdjust = 0;
+			postAdjust = 0;
 			
 			// glorify
 			if (mage.getLevel() == 4 && mage.getFloor() == 5 && !mage.isGlorified()) {
 				// preAdjust: if you can do this, it's the best thing you can do.
-				// preAdjust: However!  If you have no other Characters on the Board you CANNOT do this.
+				// preAdjust: However!  If you have no other Characters on the Board you CANNOT do this. (results not updated)
 				int[] cob = this.countOnBoardCharacters(redsTurn);
 				if (cob[0] > 1) {
-					return new AIresult(id, 6, 500, -1, (1000 * inFavor), redsTurn);
+					return new AIresult(id, 6, 500, -1, (preC[2][3] * inFavor), redsTurn);
 				}
 			}			
 			
 			// purchase
 			if (mage.getPossession() == gameNode.getBrawler("Diamond").getPieceID() && 
 					mage.getFloor() == gameNode.getBrawler("Merchant").getFloor()) {
+				// preAdjust: if the Ring is possessed by an enemy this is a good idea.
+				int opps = 0;
+				if (redsTurn) opps = 4;
+				boolean ringInEnemyHands = false;
+				for (int x = opps; x < (opps + 4); x++) {
+					if (gameNode.getBrawler(x).getPossession() == 22) {
+						ringInEnemyHands = true;
+						break;
+					}
+				}
+				if (ringInEnemyHands) preAdjust = (preC[2][4] * inFavor);
 				for (int tsr = 20; tsr <= 22; tsr++) {
 					chkAdv = preAdjust + this.getAdvantageFromAction(id, 8, 0, tsr) + postAdjust;
 					results.updateMyself(id, 8, 0, tsr, chkAdv, redsTurn);
@@ -443,20 +503,21 @@ public class AIsensors {
 		
 		if (!rogue.isOnBoard()){ // we can only place
 			int[] legitSpaces = this.getAllLegitPlacementTargets(id);
-			for (int u = 3; u > 0; u--) if (onBoardCount[0] < u) preAdjust += (0.1 * inFavor); // place it if you have <3 characters on board
+			for (int u = 3; u > 0; u--) if (onBoardCount[0] < u) preAdjust += (preC[3][0] * inFavor); // place it if you have <3 characters on board
+			preAdjust += (preC[3][1] * onBoardCount[1] * inFavor); // better to place if opponent has more characters on board
 			// other preAdjustments go here
 			
 			for (int w = 0; w < legitSpaces.length; w++) {
 				chkSpc = legitSpaces[w];
 				int[] fcr = GridBrawl.splitBoardSpace(chkSpc);
 				// This is a Character, so it's better not to place it out on the "frontier" on floor 1
-				if (fcr[1] == 4 || fcr[2] == 4) postAdjust += (.75 * against);
+				if (fcr[1] == 4 || fcr[2] == 4) postAdjust += (postC[3][0] * against);
 				
 				// if Ghost is not on-board, don't place this guy adjacent to another friendly Character
 				if (!ghost.isOnBoard()) {
-					if (myWarrior.isAdjacentToMe(fcr[0], fcr[1], fcr[2])) postAdjust += (1 * against);
-					if (myCleric.isAdjacentToMe(fcr[0], fcr[1], fcr[2])) postAdjust += (1 * against);
-					if (myMage.isAdjacentToMe(fcr[0], fcr[1], fcr[2])) postAdjust += (1 * against);
+					if (myWarrior.isAdjacentToMe(fcr[0], fcr[1], fcr[2])) postAdjust += (postC[3][1] * against);
+					if (myCleric.isAdjacentToMe(fcr[0], fcr[1], fcr[2])) postAdjust += (postC[3][1] * against);
+					if (myMage.isAdjacentToMe(fcr[0], fcr[1], fcr[2])) postAdjust += (postC[3][1] * against);
 				}
 				// Don't place the Rogue where its movement will be blocked on all sides.
 				int blockers = 0;
@@ -464,10 +525,8 @@ public class AIsensors {
 				if (fcr[1] < 4 && gameNode.getLocation(1, fcr[1] + 1, fcr[2]).isOccupied()) blockers++;
 				if (fcr[2] > 0 && gameNode.getLocation(1, fcr[1], fcr[2] - 1).isOccupied()) blockers++;
 				if (fcr[2] < 4 && gameNode.getLocation(1, fcr[1], fcr[2] + 1).isOccupied()) blockers++;
-				if (blockers == 2) postAdjust += (.25 * against);
-				else if (blockers == 3) postAdjust += (.75 * against);
-				else if (blockers == 4) postAdjust += (1.5 * against);
-				if (gameNode.getRound() > 10 && willIGetMyselfKilledHere(gameNode, chkSpc)) postAdjust += (2 * against);
+				postAdjust += (postC[3][2] * (blockers * 0.25) * against);
+				if (gameNode.getRound() > 10 && willIGetMyselfKilledHere(gameNode, chkSpc)) postAdjust += (postC[3][3] * against);
 				// other postAdjustments go here
 				chkAdv = preAdjust + this.getAdvantageFromAction(id, 1, chkSpc, -1) + postAdjust;
 				results.updateMyself(id, 1, legitSpaces[w], -1, chkAdv, redsTurn);
@@ -480,17 +539,17 @@ public class AIsensors {
 			int[] moveTargets = this.sortPlaygroundForMove(gameNode, pgR, id);
 			for (int m = 0; m < moveTargets.length; m++) {
 				chkSpc = moveTargets[m];
-				// postAdjust: moving up is encouraged, especially if level > floor
+				// postAdjust: moving up is encouraged if level > floor and unglorified
 				int lazy = (rogue.getLevel() - rogue.getFloor());
 				if ((chkSpc == rogue.getLoc() + 100) && (lazy > 0)) {
 					if (rogue.getFloor() == 1) lazy *= 2;
 					if (rogue.isGlorified()) lazy = 0;
-					postAdjust = (lazy * inFavor);	
+					postAdjust = (postC[3][4] * lazy * inFavor);	
 				}
 				
-				// postAdjust: Moving into the Glory corridor is encouraged when lvl == 4
-				if ((chkSpc % 100 == 0) && (gameNode.getBrawler(id).getLevel() == 4)) {
-					postAdjust = (5 * inFavor);
+				// postAdjust: Moving into the Glory corridor is encouraged when lvl == 4 and unglorified
+				if ((chkSpc % 100 == 0) && (rogue.getLevel() == 4) && !rogue.isGlorified()) {
+					postAdjust = (postC[3][5] * inFavor);
 				}
 				
 				chkAdv = preAdjust + this.getAdvantageFromAction(id, 2, chkSpc, -1) + postAdjust;
@@ -500,7 +559,7 @@ public class AIsensors {
 			
 			// attack
 			// preAdjust: attacking generally a good plan for Characters
-			preAdjust = (3 * inFavor);
+			preAdjust = (preC[3][2] * inFavor);
 			int[] targets = this.sortPlaygroundForAttack(gameNode, pgR, id);
 			if (targets.length > 0) {
 				for (int att = 0; att < targets.length; att++) {
@@ -509,10 +568,10 @@ public class AIsensors {
 					// postadjust: The "Must Kill" rule: If opponent only has 1 onboard Character and it can be attacked, it must be.
 					int[] cob = this.countOnBoardCharacters(redsTurn);
 					if (cob[1] == 1 && gameNode.getBrawler(victim) instanceof Character) {
-						return new AIresult(id, 3, chkSpc, victim, (1000 * inFavor), redsTurn); // If you don't do this, you're just being a dick.
+						return new AIresult(id, 3, chkSpc, victim, (postC[3][6] * inFavor), redsTurn); // If you don't do this, you're just being a dick.
 					}
 					// postAdjust: do let's attack the Merchant
-					if (gameNode.getBrawler(victim) instanceof Merchant && !rogue.isHandsFull()) postAdjust += 3 * inFavor;
+					if (gameNode.getBrawler(victim) instanceof Merchant && !rogue.isHandsFull()) postAdjust += postC[3][7] * inFavor;
 					chkAdv = preAdjust + this.getAdvantageFromAction(id, 3, chkSpc, victim) + postAdjust;
 					results.updateMyself(id, 3, chkSpc, victim, chkAdv, redsTurn);
 				}
@@ -526,7 +585,7 @@ public class AIsensors {
 				// preAdjust: However!  If you have no other Characters on the Board you CANNOT do this.
 				int[] cob = this.countOnBoardCharacters(redsTurn);
 				if (cob[0] > 1) {
-					return new AIresult(id, 6, 500, -1, (1000 * inFavor), redsTurn);
+					return new AIresult(id, 6, 500, -1, (preC[3][3] * inFavor), redsTurn);
 				}
 			}
 			
@@ -565,7 +624,7 @@ public class AIsensors {
 				if (thereIsAtLeastOne > 0) {
 					int[] bribeMe = getBestBribe(available);
 					if (bribeMe[0] != -1) {
-						if (bribeMe[1] == 500) postAdjust += (5 * inFavor); // definitely do this if you can.
+						if (bribeMe[1] == 500) postAdjust += (postC[3][8] * inFavor); // definitely do this if you can.
 						chkAdv = preAdjust + this.getAdvantageFromAction(id, 12, bribeMe[1], bribeMe[0]) + postAdjust;
 						results.updateMyself(id, 12, bribeMe[1], bribeMe[0], chkAdv, redsTurn);
 					}
@@ -594,12 +653,12 @@ public class AIsensors {
 			if (nemesesOnBoard <= cl4CharsOnBoard && gameNode.getRound() > 10) placeNemesisOkay = true;
 			if (!placeNemesisOkay) return new AIresult(id, 0, 0, 0, gameNode.getAdvantage(), redsTurn);
 			int[] legitSpaces = this.getAllLegitPlacementTargets(id);
-			// don't place this Nemesis if opponent's same suit Character is not the one on level 4.
+			// preAdjust: don't place this Nemesis if opponent's same suit Character is not the one on level 4.
 			int[] oppChars = {4, 5, 6, 7};
 			if (!redsTurn) for(int i = 0; i <= 3; i++) oppChars[i] = i;
 			Brawler[] opC = new Brawler[4];
 			for (int j = 0; j <= 3; j++) opC[j] = gameNode.getBrawler(j);
-			for (int k = 0, n = 8; k <= 3; k++, n++) if (nem.getPieceID() == n && opC[k].getLevel() != 4) preAdjust += (3 * against);
+			for (int k = 0, n = 8; k <= 3; k++, n++) if (nem.getPieceID() == n && opC[k].getLevel() != 4) preAdjust += (preC[4][0] * against);
 			// other preAdjustments go here
 			
 			for (int w = 0; w < legitSpaces.length; w++) {
@@ -607,7 +666,8 @@ public class AIsensors {
 				int[] fcr = GridBrawl.splitBoardSpace(chkSpc);
 				// Don't place a Nemesis directly above an opponent's level 4 Character
 				for (int p = 0; p <= 3; p++) {
-					if (opC[p].getFloor() == 3 && opC[p].getLevel() == 4 && opC[p].getColumn() == fcr[1] && opC[p].getRow() == fcr[2]) postAdjust += (2 * against);
+					if (opC[p].getFloor() == 3 && opC[p].getLevel() == 4 && opC[p].getColumn() == fcr[1] && opC[p].getRow() == fcr[2])
+						postAdjust += (postC[4][0] * against);
 				}
 				// other postAdjustments go here
 				chkAdv = preAdjust + this.getAdvantageFromAction(id, 1, chkSpc, -1) + postAdjust;
@@ -636,7 +696,7 @@ public class AIsensors {
 					if (colorMatch) continue; // don't even try to have a nemesis attack your own characters
 					// postAdjust: Having a Nemesis attack an NPC or a Treasure is probably a waste of a turn
 					if (gameNode.getBrawler(victim) instanceof NPC || gameNode.getBrawler(victim) instanceof Treasure) {
-						postAdjust = (4 * against);
+						postAdjust = (postC[4][1] * against);
 					}
 					chkAdv = preAdjust + this.getAdvantageFromAction(id, 3, chkSpc, victim) + postAdjust;
 					results.updateMyself(id, 3, chkSpc, victim, chkAdv, redsTurn);
@@ -652,7 +712,7 @@ public class AIsensors {
 			// preadjust: if you have any Characters off-board, fleeing a nemesis is a good idea
 			if (nem.getFloor() == 1) {
 				int[] cob = this.countOnBoardCharacters(redsTurn);
-				if (cob[0] < 4) preAdjust = (4 * inFavor);
+				if (cob[0] < 4) preAdjust = (preC[4][1] * inFavor);
 				chkAdv = preAdjust + this.getAdvantageFromAction(id, 5, 0, -1) + postAdjust;
 				results.updateMyself(id, 5, 0, -1, chkAdv, redsTurn);
 			}
@@ -674,8 +734,6 @@ public class AIsensors {
 			// other preAdjustments go here
 			for (int w = 0; w < legitSpaces.length; w++) {
 				chkSpc = legitSpaces[w];
-				// int[] fcr = splitBoardSpace(chkSpc);
-				
 				// other postAdjustments go here
 				chkAdv = preAdjust + this.getAdvantageFromAction(id, 1, chkSpc, -1) + postAdjust;
 				results.updateMyself(id, 1, legitSpaces[w], -1, chkAdv, redsTurn);
@@ -702,7 +760,7 @@ public class AIsensors {
 					// postadjust: The "Must Kill" rule: If opponent only has 1 onboard Character and it can be attacked, it must be.
 					int[] cob = this.countOnBoardCharacters(redsTurn);
 					if (cob[1] == 1 && gameNode.getBrawler(victim) instanceof Character) {
-						return new AIresult(id, 3, chkSpc, victim, (1000 * inFavor), redsTurn); // If you don't do this, you're just being a dick.
+						return new AIresult(id, 3, chkSpc, victim, (postC[4][2] * inFavor), redsTurn); // If you don't do this, you're just being a dick.
 					}
 					boolean colorMatch = ((gameNode.isRedsTurn() && gameNode.getBrawler(victim).isRed()) || 
 							(!gameNode.isRedsTurn() && gameNode.getBrawler(victim).isBlue()));
@@ -712,12 +770,10 @@ public class AIsensors {
 				}
 			}
 			
-			
 			// flee
-				
 			if (mons.getFloor() == 1) {
 				// preadjust: having level 1 or 2 monsters flee from the brawl is generally a waste of a turn
-				if (mons.getLevel() < 3) preAdjust = (5 * against);
+				if (mons.getLevel() < 3) preAdjust = (preC[4][2] * against);
 				chkAdv = preAdjust + this.getAdvantageFromAction(id, 5, 0, -1) + postAdjust;
 				results.updateMyself(id, 5, 0, -1, chkAdv, redsTurn);
 			}			
@@ -740,24 +796,24 @@ public class AIsensors {
 			// if it's round 1, it's a good idea to place the princess but I don't want AI to do it every time.
 			if (gameNode.getRound() == 1) {
 				int r1Factor = (int) (Math.random() * 4);
-				preAdjust += (r1Factor * inFavor);
+				preAdjust += (preC[5][0] * r1Factor * inFavor);
 			}
 			// placing Princess generally discouraged if my Warrior possesses Treasure
-			if (myWar.isHandsFull()) preAdjust += (2 * against);
+			if (myWar.isHandsFull()) preAdjust += (preC[5][1] * against);
 			// other preAdjustments go here
 			
 			for (int w = 0; w < legitSpaces.length; w++) {
 				chkSpc = legitSpaces[w];
 				int[] fcr = GridBrawl.splitBoardSpace(chkSpc);
+				// postAdjust: placing Princess generally good if my Warrior is in the area, but not directly above it
 				if (myWar.getFloor() == 3) {
-					// placing Princess generally good, but not directly above my Warrior (vulnerability to Dragon)
-					if (fcr[1] == myWar.getColumn() && fcr[2] == myWar.getRow()) postAdjust = (1 * against);
-					else postAdjust += (2* inFavor);
+					if (fcr[1] == myWar.getColumn() && fcr[2] == myWar.getRow()) postAdjust = (postC[5][1] * against);
+					else postAdjust += (postC[5][1] * 2 * inFavor);
 				}
 				if (opWar.getFloor() == 3) {
 					// placing Princess generally bad, unless directly above opponent's Warrior (vulnerability to Dragon)
-					if (fcr[1] == opWar.getColumn() && fcr[2] == opWar.getRow()) postAdjust = (1 * inFavor);
-					else postAdjust += (2* against);
+					if (fcr[1] == opWar.getColumn() && fcr[2] == opWar.getRow()) postAdjust = (postC[5][1] * inFavor);
+					else postAdjust += (postC[5][1] * 2 * against);
 				}
 				
 				// other postAdjustments go here
@@ -769,8 +825,9 @@ public class AIsensors {
 			gameNode.buildPlayground(id);
 			
 			// move
-			// preAdjust: Why are you even moving the Princess?
-			preAdjust = (3 * against);
+			// preAdjust: There is very little reason to move the Princess at all, unless it is on space 400.
+			boolean princessSecure = (prin.getFloor() != 4 || prin.getColumn() != 0 || prin.getRow() != 0);
+			if (princessSecure) preAdjust = (preC[5][2] * against);
 			int[] moveTargets = this.sortPlaygroundForMove(gameNode, gameNode.buildPlayground(id), id);
 			for (int m = 0; m < moveTargets.length; m++) {
 				chkSpc = moveTargets[m];
@@ -801,19 +858,19 @@ public class AIsensors {
 		if (!leper.isOnBoard()){ // we can only place
 			int[] legitSpaces = this.getAllLegitPlacementTargets(id);
 			// if !myCler.isOnBoard() and opCler.isOnBoard() definitely place the Leper right away.
-			if (!myCler.isOnBoard() && opCler.isOnBoard()) preAdjust += (3 * inFavor);
+			if (!myCler.isOnBoard() && opCler.isOnBoard()) preAdjust += (preC[5][3] * inFavor);
 			// other preAdjustments go here
 			
 			for (int w = 0; w < legitSpaces.length; w++) {
 				chkSpc = legitSpaces[w];
 				int[] fcr = GridBrawl.splitBoardSpace(chkSpc);
 				
-				// if oppCler is not on the board, do not place the Leper on floor 2 above an empty space unless myCler is on floor 2
+				// postAdjust: if oppCler is off-board, do not place the Leper on floor 2 above an empty space unless myCler is on floor 2
 				if (fcr[0] == 2 && !opCler.isOnBoard() && !gameNode.getLocation(1, fcr[1], fcr[2]).isOccupied()) {
-					if (myCler.getFloor() != 2) postAdjust += (4 * against);
+					if (myCler.getFloor() != 2) postAdjust += (postC[5][2] * against);
 				}
-				// if space in question is directly above my Cleric, give a small boost in favor.
-				if (fcr[0] - 1 == myCler.getFloor() && fcr[1] == myCler.getColumn() && fcr[2] == myCler.getRow()) postAdjust += (1 * inFavor);
+				// postAdjust: if space in question is directly above my Cleric, give a small boost in favor.
+				if (fcr[0] - 1 == myCler.getFloor() && fcr[1] == myCler.getColumn() && fcr[2] == myCler.getRow()) postAdjust += (postC[5][3] * inFavor);
 				
 				// other postAdjustments go here
 				chkAdv = preAdjust + this.getAdvantageFromAction(id, 1, chkSpc, -1) + postAdjust;
@@ -829,7 +886,7 @@ public class AIsensors {
 				int[] opCl = gameNode.buildPlayground(opCler.getPieceID());
 				boolean leperSafe = true;
 				for (int m = 0; m < opCl.length; m++) if (opCl[m] == leper.getLoc()) leperSafe = false;
-				if (leperSafe) preAdjust = (20 * against);
+				if (leperSafe) preAdjust = (preC[5][4] * against);
 			
 			int[] moveTargets = this.sortPlaygroundForMove(gameNode, gameNode.buildPlayground(id), id);
 			for (int m = 0; m < moveTargets.length; m++) {
@@ -866,7 +923,7 @@ public class AIsensors {
 			int[] legitSpaces = this.getAllLegitPlacementTargets(id);
 			// don't place the Ghost if opponent has < 3 Characters on-board
 			int gg = 3 - onBoardCount[1];
-			preAdjust += (gg * against);  // if opp has all 4 chars on board gg will be -1, this will preadjust in favor.
+			preAdjust += (preC[5][5] * gg * against);  // if opp has all 4 chars on board gg will be -1, this will preadjust in favor.
 			// other preAdjustments go here
 			
 			for (int w = 0; w < legitSpaces.length; w++) {
@@ -874,13 +931,13 @@ public class AIsensors {
 				int[] fcr = GridBrawl.splitBoardSpace(chkSpc);
 				
 				// don't place the ghost adjacent to a friendly Character
-				if (myWarrior.isAdjacentToMe(fcr[0], fcr[1], fcr[2])) postAdjust += (1 * against);
-				if (myCleric.isAdjacentToMe(fcr[0], fcr[1], fcr[2])) postAdjust += (1 * against);
-				if (myMage.isAdjacentToMe(fcr[0], fcr[1], fcr[2])) postAdjust += (1 * against);
-				if (myRogue.isAdjacentToMe(fcr[0], fcr[1], fcr[2])) postAdjust += (1 * against);
+				if (myWarrior.isAdjacentToMe(fcr[0], fcr[1], fcr[2])) postAdjust += (postC[5][4] * against);
+				if (myCleric.isAdjacentToMe(fcr[0], fcr[1], fcr[2])) postAdjust += (postC[5][4] * against);
+				if (myMage.isAdjacentToMe(fcr[0], fcr[1], fcr[2])) postAdjust += (postC[5][4] * against);
+				if (myRogue.isAdjacentToMe(fcr[0], fcr[1], fcr[2])) postAdjust += (postC[5][4] * against);
 				
 				// but do place him next to opponent's mage.
-				if (oppMage.isAdjacentToMe(fcr[0], fcr[1], fcr[2])) postAdjust += (2 * inFavor);
+				if (oppMage.isAdjacentToMe(fcr[0], fcr[1], fcr[2])) postAdjust += (postC[5][5] * inFavor);
 				
 				// other postAdjustments go here
 				chkAdv = preAdjust + this.getAdvantageFromAction(id, 1, chkSpc, -1) + postAdjust;
@@ -893,12 +950,12 @@ public class AIsensors {
 			// move
 			int[] moveTargets = this.sortPlaygroundForMove(gameNode, gameNode.buildPlayground(id), id);
 			// preadjust: if my mage is trapped by the ghost, move the ghost
-			if (gameNode.getLocation(myMage.getLoc()).isGhostEffect()) preAdjust = (4 * inFavor);
+			if (gameNode.getLocation(myMage.getLoc()).isGhostEffect()) preAdjust = (preC[5][6] * inFavor);
 			int[] myMagePlayground = gameNode.buildPlayground(myMage.getPieceID());
 			for (int m = 0; m < moveTargets.length; m++) {
 				chkSpc = moveTargets[m];
 				// postAdjust: don't move the ghost to trap my own mage
-				for (int k = 0; k < 9; k++) if (myMagePlayground[k] == chkSpc) postAdjust = (4 * against);
+				for (int k = 0; k < 9; k++) if (myMagePlayground[k] == chkSpc) postAdjust = (postC[5][6] * against);
 				
 				chkAdv = preAdjust + this.getAdvantageFromAction(id, 2, chkSpc, -1) + postAdjust;
 				
@@ -906,17 +963,7 @@ public class AIsensors {
 				postAdjust = 0;
 			}
 			preAdjust = 0;
-			/*
-			// flee
-			if (ghost.getFloor() == 1) {
-				// preadjust: having the Ghost flee is generally a bad strategy.
-					preAdjust = (7 * against);
-				chkAdv = preAdjust + this.getAdvantageFromAction(id, 5, 0, -1) + postAdjust;
-				results.updateMyself(id, 5, 0, -1, chkAdv, redsTurn);
-				preAdjust = 0;
-			}	
-			*/
-			// preadjust: if ghost is trapping your Brawlers (especially the mage) moving ghost or fleeing is a good idea	
+			
 		}
 		return results;
 	}
@@ -934,7 +981,7 @@ public class AIsensors {
 		if (!merc.isOnBoard()){ // we can only place
 			int[] legitSpaces = this.getAllLegitPlacementTargets(id);
 			// if opponent's Rogue is on board and mine is not, definitely place the Merchant right away.
-			if (!myRogue.isOnBoard() && opRogue.isOnBoard()) preAdjust += (3 * inFavor);
+			if (!myRogue.isOnBoard() && opRogue.isOnBoard()) preAdjust += (preC[6][0] * inFavor);
 			// other preAdjustments go here
 			
 			for (int w = 0; w < legitSpaces.length; w++) {
@@ -942,9 +989,9 @@ public class AIsensors {
 				int[] fcr = GridBrawl.splitBoardSpace(chkSpc);
 				
 				// if opponent's Rogue is on the board, do not place the Merchant anywhere directly above or below it.
-				if (opRogue.isOnBoard() && fcr[1] == opRogue.getColumn() && fcr[2] == opRogue.getRow()) postAdjust += (4 * against);
+				if (opRogue.isOnBoard() && fcr[1] == opRogue.getColumn() && fcr[2] == opRogue.getRow()) postAdjust += (postC[6][0] * against);
 				// if space in question is anywhere directly above or below my Rogue, small boost in favor
-				if (myRogue.isOnBoard() && fcr[1] == myRogue.getColumn() && fcr[2] == myRogue.getRow()) postAdjust += (1 * inFavor);
+				if (myRogue.isOnBoard() && fcr[1] == myRogue.getColumn() && fcr[2] == myRogue.getRow()) postAdjust += (postC[6][1] * inFavor);
 				// other postAdjustments go here
 				chkAdv = preAdjust + this.getAdvantageFromAction(id, 1, chkSpc, -1) + postAdjust;
 				results.updateMyself(id, 1, legitSpaces[w], -1, chkAdv, redsTurn);
@@ -958,10 +1005,10 @@ public class AIsensors {
 			int[] opRg = gameNode.buildPlayground(opRogue.getPieceID());
 			boolean merchantSafe = true;
 			for (int m = 0; m < opRg.length; m++) if (opRg[m] == merc.getLoc()) merchantSafe = false;
-			if (merchantSafe) preAdjust = (5 * against);
+			if (merchantSafe) preAdjust += (preC[6][1] * against);
 			// preAdjust: if your Rogue already has the Diamond, seriously don't fuck with the Merchant
 			boolean leaveBritneyAlone = (myRogue.getPossession() == gameNode.getBrawler("Diamond").getPieceID());
-			if (leaveBritneyAlone) preAdjust = (5 * against);
+			if (leaveBritneyAlone) preAdjust += (preC[6][1] * against);
 			
 			int[] moveTargets = this.sortPlaygroundForMove(gameNode, gameNode.buildPlayground(id), id);
 			for (int m = 0; m < moveTargets.length; m++) {
@@ -999,6 +1046,8 @@ public class AIsensors {
 				Brawler owner = gameNode.getBrawler(possessor);
 				boolean colorMatch = ((redsTurn && owner.isRed()) || (!redsTurn && owner.isBlue()));
 				if (!colorMatch) return results;
+				// preAdjust: if sacrifice is possible, it's almost certainly one of the best things you can do.
+				preAdjust += (preC[6][2] * inFavor);
 				if (gameNode.getBrawler(id) instanceof Diamond) {
 					boolean[] available = this.getAvailableToBribe(id);
 					int[] target = this.getBestBribe(available);
@@ -1419,4 +1468,7 @@ public class AIsensors {
 		}
 		return false;
 	}
+	
+	
+	
 } // end of AIsensors class
