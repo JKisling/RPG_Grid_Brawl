@@ -1,62 +1,58 @@
 package rpgGridBrawl;
 
+import java.io.FileNotFoundException;
+import java.util.concurrent.ExecutionException;
+
 /**
  * 
  * The purpose of the AIbox is to serve as a simple API for getting AI decisions.
- * All you should need to do is, input an AInode.toString() or a GameData object, call AIbox.getDecision() 
+ * All you should need to do is, input an AInode.toString() or a GameData object, call AIbox.getLocalDecision() 
  * and you will get back an AIresult telling you what the AI thinks you should do.
- * AIbox uses AIstructure2, which only gets the local decision.  AIbox can also spit out random moves, using the AIrandomizer class.
+ * AIbox uses AIstructure4, which only gets the local decision.  AIbox can also spit out random moves, using the AIrandomizer class.
  *
  */
 public class AIbox {
 	private static AInode boxNode;
 	private static String boxNodeString;
-	private static AIhands hands;
 	
 	public AIbox(String nodeString) {
 		boxNodeString = nodeString;
 		boxNode = new AInode(nodeString);
-		hands = new AIhands();
 	}
 	
 	public AIbox(GameData crt) {
 		boxNode = new AInode(crt);
 		boxNodeString = boxNode.toString();
-		hands = new AIhands();
 	}
 	
-	public AIresult getDecision() {
-		String nodeCheck = boxNode.checkNodeIntegrity();
-		if (!nodeCheck.equals("OK")) {
-			System.out.println("Cannot proceed, passed in node String has the following flaw:");
-			System.out.println(nodeCheck);
-			System.out.println(boxNodeString);
-			System.exit(0);
-		}
+	public AIresult getLocalDecision() throws FileNotFoundException, InterruptedException, ExecutionException {
 		boxNodeString = boxNode.toString();
 		boolean legalMove = false;
 		int retries = 0;
 		AIresult result = new AIresult();
 		do {
-			AIstructure2 wopr = new AIstructure2(boxNodeString);
-			if (wopr.getNode().getRound() < 11) result = wopr.bestSquareOffAction(wopr.getNode().isRedsTurn());
-			else result = wopr.bestBrawlAction(wopr.getNode().isRedsTurn());
-			// want a good QA apparatus here, this does not seem to be working.
-			/*
-			String QAstring = hands.performDesiredAction(boxNodeString, result);
-			AInode QAnode = new AInode(QAstring);
-			String amIOK = QAnode.checkNodeIntegrity();
-			if (amIOK.equals("OK")) legalMove = true;
-			else retries++;
-			*/
-			legalMove = true;
+			// AIstructure2 wopr = new AIstructure2(boxNodeString);
+			AIstructure4 wopr = new AIstructure4(boxNodeString, new ScoringProfile("standard"));
+			result = wopr.makeLocalDecision();
+			if (result.getAction() == 0) {
+				legalMove = false;
+				retries++;
+			}
+			else legalMove = true;
 		} while(!legalMove && retries < 5);
 		return result;
 	}
 	
-	public String getDecisionAsSuggestion() {
+	// this method is currently not in use as AIstructure3 will need to be rewritten, probably as AIstructure5
+	public AIresult getDecision() {
+		boxNodeString = boxNode.toString();
+		AIstructure3 hal = new AIstructure3(boxNodeString, new ScoringProfile("standard"));
+		return hal.makeDecision();
+	}
+	
+	public String getDecisionAsSuggestion() throws FileNotFoundException, InterruptedException, ExecutionException {
 		String suggestion = "";
-		AIresult result = this.getDecision();
+		AIresult result = this.getLocalDecision();
 		Interaction interact = new Interaction();
 		suggestion = interact.reportOnAISelection(result);
 		return ("The AI suggests: " + suggestion);
