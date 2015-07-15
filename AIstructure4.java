@@ -49,7 +49,7 @@ public class AIstructure4 {
 			ExecutorService pool = Executors.newFixedThreadPool(threads);
 			for (int m = 0; m < 24; m++) {
 				if (this.onSwitches[m]) {
-					Future<AIresult> tester = pool.submit(new AIthread(nodeString, m, node.isRedsTurn(), threads));
+					Future<AIresult> tester = pool.submit(new AIthread(nodeString, m, node.isRedsTurn()));
 					futures[m] = tester.get();
 				}
 				else futures[m].turnOff();
