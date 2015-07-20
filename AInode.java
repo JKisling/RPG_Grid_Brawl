@@ -980,6 +980,23 @@ public class AInode {
 		return saveData;	
 	}	
 	
+	// This method is for producing a String that will work in the "load data" constructor for GameData
+	public String toGameDataString(String names) {
+		String saveData = names;
+		this.updateStatusArray();
+		saveData += this.getRound() + ",";
+		if (this.isRedsTurn()) saveData += "T,";
+		else saveData += "F,";
+		if (this.canRedPlace()) saveData += "T,";
+		else saveData += "F,";
+		if (this.canBluePlace()) saveData += "T,";
+		else saveData += "F,";
+		saveData += this.getRedLU() + ",";
+		saveData += this.getBlueLU() + ",";
+		for (int i = 0; i < this.brawlers.length; i++) saveData += this.getBlrStatus(i) + ",";
+		return saveData;	
+	}
+	
 	// adapted from same method in GameData
 	// generate a 10-digit string that describes the current state of a brawler in a game and save it in GameData's status array
 	public void updateStatusArray() {
