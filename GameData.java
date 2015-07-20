@@ -586,6 +586,13 @@ public class GameData {
 		return freshSet;
 	}
 	
+	public String preserveNames() {
+		String saveData = this.getConfig().getGameName() + ",";
+		saveData += this.getConfig().getRedPlayerName() + ",";
+		saveData += this.getConfig().getBluePlayerName() + ",";
+		return saveData;
+	}
+	
 	// this method is mainly for test purposes
 	public void quickPlacement(int id, int loc) {
 		int[] fcr = GridBrawl.splitBoardSpace(loc);
