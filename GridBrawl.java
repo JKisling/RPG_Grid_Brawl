@@ -5,7 +5,6 @@ import javax.swing.JFrame;
  * 	RPG GRID BRAWL
  * 
  * Designed and implemented by Jackson Aaron Kisling
- * Update for 6/29/15 includes integration with the AI classes.
  * 
  */
 
@@ -114,16 +113,18 @@ public class GridBrawl {
 			double advantage = scoreKeeper.calculateAdvantage(crtGame.currentScore);
 			interact.tellPlayer(interact.reportScores(crtGame.currentScore, advantage), false);
 			interact.space();
-			if (crtGame.isRedsTurn() && crtGame.getConfig().isAIRed()) {
-				boxRed = new AIbox(crtGame);
-				interact.tellPlayer(boxRed.getDecisionAsSuggestion(), false);
-				interact.space();
-			}
-			if (!crtGame.isRedsTurn() && crtGame.getConfig().isAIBlue()) {
-				boxBlue = new AIbox(crtGame);
-				interact.tellPlayer(boxBlue.getDecisionAsSuggestion(), false);
-				interact.space();
-			}
+			try {
+				if (crtGame.isRedsTurn() && crtGame.getConfig().isAIRed()) {
+					boxRed = new AIbox(crtGame);
+					interact.tellPlayer(boxRed.getDecisionAsSuggestion(), false);
+					interact.space();
+				}
+				if (!crtGame.isRedsTurn() && crtGame.getConfig().isAIBlue()) {
+					boxBlue = new AIbox(crtGame);
+					interact.tellPlayer(boxBlue.getDecisionAsSuggestion(), false);
+					interact.space();
+				}
+			} catch (Exception ex) { ex.printStackTrace(); }
 			
 			interact.tellPlayer(interact.reportOnPlacementOptions(crtGame), false);
 			if(crtGame.getGameRound() > 1) interact.tellPlayer(interact.reportOnLastUsed(crtGame), false);
@@ -174,6 +175,27 @@ public class GridBrawl {
 		
 		endGame(crtGame, winCondition);
 	}  // end of main()
+	
+	private static AIresult aiDecide(GameData crt) {
+		AIbox decider = new AIbox(crt);
+		AIresult decision = new AIresult();
+		try {
+			decision = decider.getLocalDecision();
+			// occasionally the ai fails to come up with a viable move.  This should account for that.
+			if (decision.getAction() == 0) decision = decider.getRandomAction();
+		} catch(Exception ex) { ex.printStackTrace(); }
+		return decision;
+	}
+	
+	private static GameData aiExecute(AIresult decision, GameData crt) {
+		String names = crt.preserveNames();
+		AIhands executor = new AIhands();
+		AInode node = new AInode(crt);
+		String nodeString = node.toString();
+		String moveMade = executor.performDesiredAction(nodeString, decision);
+		node.setToString(moveMade);
+		return new GameData(node.toGameDataString(names));
+	}
 	
 	// used by Fireball and Spend classes
 	// returns an int[] with all of the pieceIDs of all brawlers within line of sight of "shooter"
