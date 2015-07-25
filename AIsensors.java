@@ -436,6 +436,8 @@ public class AIsensors {
 							if (gameNode.getBrawler(victim) instanceof Nemesis) postAdjust += (postC[2][8] * inFavor);
 							chkAdv = preAdjust + this.getAdvantageFromAction(id, 4, chkSpc, victim) + postAdjust;
 							results.updateMyself(id, 4, chkSpc, victim, chkAdv, redsTurn);
+							// postAdjust: if it's the Princess, leave it alone.
+							if (gameNode.getBrawler(victim) instanceof Princess) continue;
 						}
 					}
 				}
@@ -701,6 +703,8 @@ public class AIsensors {
 					chkAdv = preAdjust + this.getAdvantageFromAction(id, 3, chkSpc, victim) + postAdjust;
 					results.updateMyself(id, 3, chkSpc, victim, chkAdv, redsTurn);
 					if (nem instanceof Dragon) {
+						// postAdjust: if it's the Princess, leave it alone.
+						if (gameNode.getBrawler(victim) instanceof Princess) continue;
 						chkAdv = preAdjust + this.getAdvantageFromAction(id, 4, chkSpc, victim) + postAdjust;
 						results.updateMyself(id, 4, chkSpc, victim, chkAdv, redsTurn);
 					}
