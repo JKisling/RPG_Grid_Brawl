@@ -3,7 +3,8 @@ package rpgGridBrawl;
 public class Princess extends Brawler implements NPC {
 	private int floor, column, row, level, pieceID;
 	private boolean onBoard, usedLast;
-	private final boolean isRed, isBlue;
+	private final boolean isRed, isBlue, handsFull;
+	private final int possession;
 	private final String letterName;
 	private final char suit;
 	
@@ -14,6 +15,8 @@ public class Princess extends Brawler implements NPC {
 		isRed = false;
 		isBlue = false;
 		suit = 'W';
+		handsFull = false;
+		possession = -1;
 	}
 	
 	public int getFloor() 				{ return this.floor; }
@@ -43,13 +46,13 @@ public class Princess extends Brawler implements NPC {
 	public void setSwordBonus(int x) 		{ this.swordBonus = x; } 
 	public void setShieldBonus(int x) 		{ this.shieldBonus = x; } 
 	public void setClericDefenseBonus(int x){ this.clericDefenseBonus = x; } 
-	public void setPossession(int x) 		{ this.possession = x; } 
 	public void setPieceID(int x) 			{ this.pieceID = x; }
 	public void setOnBoard(boolean x) 		{ this.onBoard = x; }
 	public void setUsedLast(boolean x) 		{ this.usedLast = x; }
 	public void setPoweredUp(boolean x) 	{ this.poweredUp = x; }
-	public void setHandsFull(boolean x) 	{ this.handsFull = x; }
+	public void setHandsFull(boolean x) 	{ return; }
 	public void setGlorified(boolean x) 	{ this.glorified = x; }
+	public void setPossession(int x)		{ return ; }
 	
 	public boolean canAttack(Brawler victim) { return false; }
 	
