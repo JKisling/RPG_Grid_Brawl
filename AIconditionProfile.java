@@ -97,6 +97,22 @@ public class AIconditionProfile {
 			postC[6][0] = 4;	// -: Placing the Merchant anywhere above or below opponent's Rogue is discouraged
 			postC[6][1] = 2;	// -: Placing the Merchant anywhere above or below my Rogue is encouraged
 		}
+		
+		if (profile.equals("HARD")) { 
+			preC[0][0]=18; preC[0][1]=7; preC[0][2]=21; preC[0][3]=100; preC[0][4]=10; preC[1][0]=19; preC[1][1]=1; preC[1][2]=12; preC[1][3]=100; preC[1][4]=13; preC[2][0]=8; preC[2][1]=20; preC[2][2]=7; preC[2][3]=100; preC[2][4]=14; preC[3][0]=0; preC[3][1]=19; preC[3][2]=17; preC[3][3]=100; preC[4][0]=11; preC[4][1]=21; preC[4][2]=5; preC[5][0]=18; preC[5][1]=1; preC[5][2]=22; preC[5][3]=12; preC[5][4]=2; preC[5][5]=5; preC[5][6]=7; preC[6][0]=10; preC[6][1]=9; preC[6][2]=1; 
+			postC[0][0]=4; postC[0][1]=4; postC[0][2]=0; postC[0][3]=4; postC[0][4]=24; postC[0][5]=18; postC[0][6]=100; postC[1][0]=3; postC[1][1]=19; postC[1][2]=1; postC[1][3]=20; postC[1][4]=0; postC[1][5]=11; postC[1][6]=100; postC[2][0]=14; postC[2][1]=12; postC[2][2]=3; postC[2][3]=19; postC[2][4]=7; postC[2][5]=3; postC[2][6]=12; postC[3][0]=17; postC[3][1]=5; postC[3][2]=15; postC[3][3]=9; postC[3][4]=18; postC[3][5]=7; postC[3][6]=100; postC[4][0]=1; postC[4][1]=22; postC[4][2]=100; postC[5][0]=21; postC[5][1]=21; postC[5][2]=23; postC[5][3]=21; postC[5][4]=17; postC[5][5]=17; postC[5][6]=20; postC[6][0]=3; postC[6][1]=22; 
+		}
+		
+		if (profile.equals("MEDIUM")) { 
+			preC[0][0]=1; preC[0][1]=12; preC[0][2]=1; preC[0][3]=100; preC[0][4]=22; preC[1][0]=23; preC[1][1]=21; preC[1][2]=1; preC[1][3]=100; preC[1][4]=15; preC[2][0]=19; preC[2][1]=1; preC[2][2]=1; preC[2][3]=100; preC[2][4]=23; preC[3][0]=4; preC[3][1]=9; preC[3][2]=1; preC[3][3]=100; preC[4][0]=19; preC[4][1]=17; preC[4][2]=9; preC[5][0]=17; preC[5][1]=12; preC[5][2]=14; preC[5][3]=13; preC[5][4]=9; preC[5][5]=14; preC[5][6]=6; preC[6][0]=14; preC[6][1]=19; preC[6][2]=0; 
+			postC[0][0]=7; postC[0][1]=6; postC[0][2]=18; postC[0][3]=1; postC[0][4]=13; postC[0][5]=1; postC[0][6]=100; postC[1][0]=11; postC[1][1]=10; postC[1][2]=6; postC[1][3]=1; postC[1][4]=19; postC[1][5]=1; postC[1][6]=100; postC[2][0]=23; postC[2][1]=3; postC[2][2]=1; postC[2][3]=22; postC[2][4]=0; postC[2][5]=20; postC[2][6]=1; postC[3][0]=-1; postC[3][1]=2; postC[3][2]=0; postC[3][3]=1; postC[3][4]=12; postC[3][5]=1; postC[3][6]=100; postC[4][0]=9; postC[4][1]=4; postC[4][2]=100; postC[5][0]=21; postC[5][1]=9; postC[5][2]=2; postC[5][3]=4; postC[5][4]=21; postC[5][5]=14; postC[5][6]=21; postC[6][0]=16; postC[6][1]=11; 
+		}
+		
+		if (profile.equals("EASY")) { // this player does everything wrong
+			preC[0][0]=-10; preC[0][1]=-10; preC[0][2]=-10; preC[0][3]=0; preC[0][4]=-10; preC[1][0]=-10; preC[1][1]=-10; preC[1][2]=-10; preC[1][3]=0; preC[1][4]=-10; preC[2][0]=-10; preC[2][1]=-10; preC[2][2]=-10; preC[2][3]=0; preC[2][4]=-10; preC[3][0]=-10; preC[3][1]=-10; preC[3][2]=-10; preC[3][3]=0; preC[4][0]=-10; preC[4][1]=-10; preC[4][2]=-10; preC[5][0]=-10; preC[5][1]=-10; preC[5][2]=-10; preC[5][3]=-10; preC[5][4]=-10; preC[5][5]=-10; preC[5][6]=-10; preC[6][0]=-10; preC[6][1]=-10; preC[6][2]=-10; 
+			postC[0][0]=-10; postC[0][1]=-10; postC[0][2]=-10; postC[0][3]=-10; postC[0][4]=-10; postC[0][5]=-10; postC[0][6]=0; postC[1][0]=-10; postC[1][1]=-10; postC[1][2]=-10; postC[1][3]=-10; postC[1][4]=-10; postC[1][5]=-10; postC[1][6]=0; postC[2][0]=-10; postC[2][1]=-10; postC[2][2]=-10; postC[2][3]=-10; postC[2][4]=-10; postC[2][5]=-10; postC[2][6]=-10; postC[3][0]=-10; postC[3][1]=-10; postC[3][2]=-10; postC[3][3]=-10; postC[3][4]=-10; postC[3][5]=-10; postC[3][6]=0; postC[4][0]=-10; postC[4][1]=-10; postC[4][2]=-10; postC[5][0]=-10; postC[5][1]=-10; postC[5][2]=-10; postC[5][3]=-10; postC[5][4]=-10; postC[5][5]=-10; postC[5][6]=-10; postC[6][0]=-10; postC[6][1]=-10; 
+		}
+		
 	}
 	
 	public double getPre(int indexA, int indexB) { return this.preC[indexA][indexB]; }
