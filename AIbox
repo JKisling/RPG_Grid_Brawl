@@ -14,15 +14,30 @@ import java.util.concurrent.ExecutionException;
 public class AIbox {
 	private static AInode boxNode;
 	private static String boxNodeString;
+	private static String personality;
 	
 	public AIbox(String nodeString) {
 		boxNodeString = nodeString;
 		boxNode = new AInode(nodeString);
+		personality = "standard";
 	}
 	
 	public AIbox(GameData crt) {
 		boxNode = new AInode(crt);
 		boxNodeString = boxNode.toString();
+		personality = "standard";
+	}
+	
+	public AIbox(String nodeString, String p) {
+		boxNodeString = nodeString;
+		boxNode = new AInode(nodeString);
+		personality = p;
+	}
+	
+	public AIbox(GameData crt, String p) {
+		boxNode = new AInode(crt);
+		boxNodeString = boxNode.toString();
+		personality = p;
 	}
 	
 	public AIresult getLocalDecision() throws FileNotFoundException, InterruptedException, ExecutionException {
@@ -31,8 +46,7 @@ public class AIbox {
 		int retries = 0;
 		AIresult result = new AIresult();
 		do {
-			// AIstructure2 wopr = new AIstructure2(boxNodeString);
-			AIstructure4 wopr = new AIstructure4(boxNodeString, new ScoringProfile("standard"));
+			AIstructure4 wopr = new AIstructure4(boxNodeString, new ScoringProfile(personality));
 			result = wopr.makeLocalDecision();
 			if (result.getAction() == 0) {
 				legalMove = false;
@@ -46,7 +60,7 @@ public class AIbox {
 	// this method is currently not in use as AIstructure3 will need to be rewritten, probably as AIstructure5
 	public AIresult getDecision() {
 		boxNodeString = boxNode.toString();
-		AIstructure3 hal = new AIstructure3(boxNodeString, new ScoringProfile("standard"));
+		AIstructure3 hal = new AIstructure3(boxNodeString, new ScoringProfile(personality));
 		return hal.makeDecision();
 	}
 	
