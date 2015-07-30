@@ -45,6 +45,7 @@ public class AIstructure4 {
 		for (int k = 0; k < 24; k++) futures[k] = new AIresult();
 		boolean gotInitial = false, goodResult = false;
 		double rando = 0.1;
+		int attempts = 0;
 		do {
 			ExecutorService pool = Executors.newFixedThreadPool(threads);
 			for (int m = 0; m < 24; m++) {
@@ -54,8 +55,6 @@ public class AIstructure4 {
 				}
 				else futures[m].turnOff();
 			}
-			pool.shutdown();
-			pool.awaitTermination(1000, TimeUnit.NANOSECONDS);
 			boolean bestRedPlace, bestBluePlace, doIndeedGoForIt;
 			boolean goForIt = (Math.random() < rando);
 			for (int n = 0; n < 24; n++) {
@@ -71,7 +70,16 @@ public class AIstructure4 {
 					if (masterDecision.getAction() != 0) goodResult = true;
 				}
 			}
-			if (!goodResult) rando += .05;
+			if (!goodResult) {
+				rando += .05;
+				attempts++;
+				if (attempts > 25) {
+					AIrandomizer randomizer = new AIrandomizer(nodeString);
+					masterDecision = randomizer.randomAction();
+					return masterDecision;
+				}
+			}
+			pool.shutdown();
 		} while(!goodResult);
 		return masterDecision;
 	}
