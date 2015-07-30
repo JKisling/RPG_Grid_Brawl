@@ -16,6 +16,8 @@ public class AIresult {
 	private int brawlerID, action, idealPlace, secondaryTarget;
 	private double bestAdv;
 	private boolean iAmRed;
+	private String nodeString;
+	private boolean onSwitch;
 	
 	public AIresult() {}
 	
@@ -37,12 +39,25 @@ public class AIresult {
 		this.iAmRed = g;
 	}
 	
+	public AIresult(int a, int b, int c, int d, double f, boolean g, boolean h, String k) {
+		this.brawlerID = a;
+		this.action = b;
+		this.idealPlace = c;
+		this.secondaryTarget = d;
+		this.bestAdv = f;
+		this.iAmRed = g;
+		this.onSwitch = h;
+		this.nodeString = k;
+	}
+	
 	public int     getAction()          { return this.action; }
 	public int     getID()              { return this.brawlerID; }
 	public int     getIdealPlace()      { return this.idealPlace; }
 	public int     getSecondaryTarget() { return this.secondaryTarget; }
 	public double  getBestAdv()         { return this.bestAdv; }
 	public boolean amIRed()             { return this.iAmRed; }
+	public String getNodeString()		{ return this.nodeString; }
+	public boolean isSwitchedOn()		{ return this.onSwitch; }
 	
 	public void setAction(int a)          { this.action = a; }
 	public void setID(int b)              { this.brawlerID = b; }
@@ -50,6 +65,9 @@ public class AIresult {
 	public void setSecondaryTarget(int d) { this.secondaryTarget = d; }
 	public void setBestAdv(double f)      { this.bestAdv = f; }
 	public void setIAmRed(boolean g)      { this.iAmRed = g; }
+	public void setNodeString(String k)	  { this.nodeString = k; }
+	public void turnOn()				  { this.onSwitch = true; }
+	public void turnOff()				  { this.onSwitch = false; }
 	
 	public void updateMyself(int id, int action, int maybeIdealPlace, int secondary, double maybeBestAdv, boolean amRed) {
 		boolean weChanged = false;
