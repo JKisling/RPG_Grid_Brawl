@@ -105,6 +105,7 @@ public class GridBrawl {
 			interact.space();
 			
 			// every round is scored here
+			/*
 			AInode scoreNode = new AInode(crtGame);
 			ScoringProfile sProf = new ScoringProfile("standard");
 			Scoring scoreKeeper = new Scoring(scoreNode.toString(), sProf);
@@ -112,6 +113,7 @@ public class GridBrawl {
 			else crtGame.currentScore = scoreKeeper.brawlScore();
 			double advantage = scoreKeeper.calculateAdvantage(crtGame.currentScore);
 			interact.tellPlayer(interact.reportScores(crtGame.currentScore, advantage), false);
+			*/
 			interact.space();
 			try {
 				if (crtGame.isRedsTurn() && crtGame.getConfig().isAIRed()) {
@@ -176,8 +178,14 @@ public class GridBrawl {
 		endGame(crtGame, winCondition);
 	}  // end of main()
 	
+	// this method will cause an error if it crt.config.get
 	private static AIresult aiDecide(GameData crt) {
-		AIbox decider = new AIbox(crt);
+		String[] personalityBox = crt.getConfig().getAInames();
+		String personality = "";
+		if (crt.isRedsTurn() && crt.getConfig().isAIRed()) personality = personalityBox[0];
+		else if (!crt.isRedsTurn() && crt.getConfig().isAIBlue()) personality = personalityBox[1];
+		else personality = "standard"; // this is the failsafe.
+		AIbox decider = new AIbox(crt, personality);
 		AIresult decision = new AIresult();
 		try {
 			decision = decider.getLocalDecision();
