@@ -50,42 +50,35 @@ public class GridBrawl {
 		boolean selectGood = false;
 		interact.tellPlayer(0, 0, false); // "Welcome to RPG Grid Brawl"
 		interact.space();
-		while(selectGood == false) {
+		
+		interact.tellPlayer(0, 1, true); 
+		// "Please select from the following options:\n(S)tart a new game\n(L)oad a saved game\n(R)ando-MIZE?\n" +
+		//"(G)ame Editor\n(E)xit\n\nYour selection: "
+		int mainMenu = interact.mainMenuSelect();
+		switch (mainMenu) {
+		case 0: System.exit(0); // player entered some bullshit at main menu
+		case 1: // new game
+			crtGame = FOmenu.newGame();
+			interact.tellPlayer(interact.msgBuild(crtGame, 0, 0), false); // "Game " + gameName + " has been created."
+			interact.tellPlayer(interact.msgBuild(crtGame, 1, 0), false); // redPlayerName + " will take the first turn as the red player."
+			interact.space();
+			break;
+		case 2: // load game
+			crtGame = FOmenu.loadGame();
+			interact.tellPlayer(interact.msgBuild(crtGame, 2, 0), false); // "Game " + gameName + " has been loaded."
+			interact.tellPlayer(interact.msgBuild(crtGame, 3, 0), false); // "Game will begin on turn number " + gameRound
+			break;
+		case 3: // make new random mayhem
+			crtGame = FOmenu.newRandomGame(crtGame, true);
+			break;
+		case 4: // make new random regular brawl
+			crtGame = FOmenu.newRandomGame(crtGame, false);
+			break;
+		case 5: // game editor
+			crtGame = gameEditor.execute();
+			break;
+		}
 			
-			interact.tellPlayer(0, 1, true); 
-			// "Please select from the following options:\n(S)tart a new game\n(L)oad a saved game\n(R)ando-MIZE?\n" +
-			//"(G)ame Editor\n(E)xit\n\nYour selection: "
-			int mainMenu = interact.mainMenuSelect();
-			switch (mainMenu) {
-			// this next line makes the whole main menu loop unnecessary, but maybe I want it?
-			case 0: System.exit(0); // player entered some bullshit at main menu
-			case 1: // new game
-				crtGame = FOmenu.newGame();
-				interact.tellPlayer(interact.msgBuild(crtGame, 0, 0), false); // "Game " + gameName + " has been created."
-				interact.tellPlayer(interact.msgBuild(crtGame, 1, 0), false); // redPlayerName + " will take the first turn as the red player."
-				interact.space();
-				selectGood = true;
-				break;
-			case 2: // load game
-				crtGame = FOmenu.loadGame();
-				interact.tellPlayer(interact.msgBuild(crtGame, 2, 0), false); // "Game " + gameName + " has been loaded."
-				interact.tellPlayer(interact.msgBuild(crtGame, 3, 0), false); // "Game will begin on turn number " + gameRound
-				selectGood = true;
-				break;
-			case 3: // make new random mayhem
-				crtGame = FOmenu.newRandomGame(crtGame, true);
-				selectGood = true;
-				break;
-			case 4: // make new random regular brawl
-				crtGame = FOmenu.newRandomGame(crtGame, false);
-				selectGood = true;
-				break;
-			case 5: // game editor
-				crtGame = gameEditor.execute();
-				selectGood = true;
-				break;
-			}
-		}	
 		interact.tellPlayer(0, 2, true); // "PREPARE TO BRAWL..."
 		interact.space();
 		
@@ -101,7 +94,7 @@ public class GridBrawl {
 				crtGame.getConfig().setCrtPlayerName(crtGame.getConfig().getBluePlayerName());
 				interact.tellPlayer(interact.msgBuild(crtGame, 5, 0), false); // "Player " + bluePlayerName + ", it is Blue's Turn."
 			}
-			interact.tellPlayer(interact.msgBuild(crtGame, 6, 0), false); // "It is round #" + gameRound
+			// interact.tellPlayer(interact.msgBuild(crtGame, 6, 0), false); // "It is round #" + gameRound
 			interact.space();
 			
 			// every round is scored here
@@ -114,7 +107,7 @@ public class GridBrawl {
 			double advantage = scoreKeeper.calculateAdvantage(crtGame.currentScore);
 			interact.tellPlayer(interact.reportScores(crtGame.currentScore, advantage), false);
 			*/
-			interact.space();
+			
 			try {
 				if (crtGame.isRedsTurn() && crtGame.getConfig().isAIRed()) {
 					boxRed = new AIbox(crtGame);
@@ -127,6 +120,7 @@ public class GridBrawl {
 					interact.space();
 				}
 			} catch (Exception ex) { ex.printStackTrace(); }
+			
 			
 			interact.tellPlayer(interact.reportOnPlacementOptions(crtGame), false);
 			if(crtGame.getGameRound() > 1) interact.tellPlayer(interact.reportOnLastUsed(crtGame), false);
@@ -154,6 +148,7 @@ public class GridBrawl {
 				case 9: crtGame =  pickpocket.execute(crtGame);						break;
 				case 10: crtGame = fireball.burn(crtGame, 1);						break;
 				case 11: crtGame = flee.execute(crtGame);							break;
+				/*
 				case 12: // show board method
 					int dtBL = 1;
 					int rlu = crtGame.getRedLastUsed();
@@ -169,6 +164,7 @@ public class GridBrawl {
 					frame.setVisible(true);
 					break;	
 				case 13: interact.tellPlayer(interact.gameReport(crtGame), false); 	break;
+				*/
 			}
 			winCondition = evaluateWinCondition(crtGame);
 			crtGame = endTurn(crtGame);
