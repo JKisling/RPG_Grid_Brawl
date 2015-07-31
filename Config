@@ -10,6 +10,7 @@ public class Config {
 	private String gameName, redPlayerName, bluePlayerName, crtPlayerName;
 	private int gameID; // used to match Config objects to GameData or AInode, should that be necessary
 	private boolean AIplaysRed, AIplaysBlue;
+	private String[] AInames;
 	
 	public Config() {}
 	
@@ -20,6 +21,7 @@ public class Config {
 	public int getGameID() 				{ return this.gameID; }
 	public boolean isAIRed() 			{ return this.AIplaysRed; }
 	public boolean isAIBlue() 			{ return this.AIplaysBlue; }
+	public String[] getAInames()		{ return this.AInames; }
 	
 	public void setGameName(String x) 		{ this.gameName = x; }
 	public void setRedPlayerName(String x) 	{ this.redPlayerName = x; }
@@ -28,4 +30,6 @@ public class Config {
 	public void setGameID(int y)			{ this.gameID = y; }
 	public void setAIRed(boolean z) 		{ this.AIplaysRed = z; }
 	public void setAIBlue(boolean z) 		{ this.AIplaysBlue = z; }
+	public void setAIname(int index, String x) 	{ this.AInames[index] = x; }
+	
 }
