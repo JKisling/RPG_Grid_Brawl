@@ -41,7 +41,6 @@ public class AIbox {
 	}
 	
 	public AIresult getLocalDecision() throws FileNotFoundException, InterruptedException, ExecutionException {
-		boxNodeString = boxNode.toString();
 		boolean legalMove = false;
 		int retries = 0;
 		AIresult result = new AIresult();
