@@ -430,19 +430,20 @@ class Interaction extends GridBrawl {
 		if (oA[9]) System.out.println("9. Pickpocket a Treasure from an opponent's Character.");
 		if (oA[10]) System.out.println("10. The Dragon Breathes Fire!");
 		if (oA[11]) System.out.println("11. A Brawler on BL1 Flees from the board.");
+		/*
 		System.out.println("12. Show the board.");
 		System.out.println("13. Game report.");
+		 */
+		
 		System.out.println();
 		int input = -1;
 		while(!goodChoice) {
 			System.out.print("Your selection: ");
 			
-			// This is kicking up a NoSuchElementException when I load a game.
-			
 			String Sinput = this.bob.next();
 			try {
 				input = Integer.parseInt(Sinput);
-				if (input < 0 || input > 13) {
+				if (input < 0 || input > 11) {
 					tellPlayer("That is not a valid option number.", false);
 					goodChoice = false;	
 				}
@@ -788,5 +789,7 @@ class Interaction extends GridBrawl {
 		if (isPrompt) System.out.print(say);
 		else System.out.println(say);
 	}
+	
+	
 } // end of Interaction class
 	
